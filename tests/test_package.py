@@ -14,8 +14,8 @@ def test_package_exposes_version() -> None:
 
 
 def test_subpackages_importable() -> None:
-    from career_match import data, evaluation, extraction, matching, parsing
     from career_match import core as core_pkg
+    from career_match import data, evaluation, extraction, matching, parsing
 
     assert core_pkg.__name__.endswith("core")
     assert data.__name__.endswith("data")

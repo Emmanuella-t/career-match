@@ -12,7 +12,7 @@ from collections import Counter
 from pathlib import Path
 from statistics import mean, median
 
-from career_match.data.legacy import default_dataset_path, load_legacy_dataset
+from career_match.data.legacy import default_dataset_path, load_legacy_dataset, repo_root
 from career_match.parsing.text import repair_mojibake
 
 REPORT_PATH = Path("reports") / "legacy_dataset_audit.md"
@@ -22,15 +22,21 @@ def audit_legacy_dataset(path: Path | None = None) -> dict[str, object]:
     """Return a JSON-serializable summary of the legacy dataset."""
     dataset_path = path or default_dataset_path()
     records = load_legacy_dataset(dataset_path)
+    try:
+        display_path = dataset_path.resolve().relative_to(repo_root())
+    except ValueError:
+        display_path = dataset_path
     texts = [record.text for record in records]
     lengths = [len(text) for text in texts]
     categories = Counter(record.category for record in records)
     unique_texts = set(texts)
     mojibake_rows = [
-        record.source_row for record in records if "Ã" in record.text and repair_mojibake(record.text) != record.text
+        record.source_row
+        for record in records
+        if "Ã" in record.text and repair_mojibake(record.text) != record.text
     ]
     return {
-        "path": str(dataset_path),
+        "path": str(display_path),
         "rows": len(records),
         "categories": dict(sorted(categories.items())),
         "category_count": len(categories),
