@@ -51,6 +51,18 @@ pairs. Any matching experiment must construct its own task definition.
 `experiments/` is reserved for notebooks and scripts that train or compare
 matchers. Nothing in that directory is production.
 
+## Product prototype
+
+`frontend/` is a Next.js App Router app (TypeScript, Tailwind, shadcn/ui).
+Routes:
+
+- `/` — product overview and honest ML status
+- `/match` — lexicon skill-overlap demo (not a trained matcher)
+- `/architecture` — three-layer split in product language
+
+The UI must not import Python or invent a match percentage. Serving will be
+a separate process when a baseline exists.
+
 ## What this repository is not
 
 - Not an applicant-tracking system.

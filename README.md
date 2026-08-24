@@ -47,6 +47,21 @@ python scripts/audit_legacy_dataset.py
 python -c "import career_match; print('Career Match import successful')"
 ```
 
+## Setup (frontend)
+
+Node.js 22+ and npm:
+
+```bash
+cd frontend
+npm ci
+npm run lint
+npm run build
+npm run dev
+```
+
+The prototype runs at `http://127.0.0.1:43173`. It highlights lexicon overlaps
+only. It does not expose a production match score.
+
 ## Legacy prototype
 
 The starting point of this repository is a resume-category screening notebook
