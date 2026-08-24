@@ -85,3 +85,7 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
+
+# Local agent / editor scratch
+agent-tools/
+.cursor/
