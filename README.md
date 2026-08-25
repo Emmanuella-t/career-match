@@ -1,5 +1,7 @@
 # Career Match
 
+![Career Match](docs/assets/career-match-cover.png)
+
 Explainable ML-powered resume-to-job matching.
 
 Career Match turns the original Resume Screening notebook prototype into a
