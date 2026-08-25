@@ -62,15 +62,17 @@ uvicorn career_match.api.app:app --reload --host 127.0.0.1 --port 8000
 | `CAREER_MATCH_MODEL_CACHE_DIR` | Optional model cache directory | unset (library defaults) |
 | `CLERK_ISSUER` | Clerk issuer URL for JWT verification (persistence) | required for authenticated APIs |
 | `CLERK_JWKS_URL` | Optional JWKS override | `{CLERK_ISSUER}/.well-known/jwks.json` |
-| `SUPABASE_URL` | Supabase project URL | required for persistence |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase **service role** key (backend only) | required for persistence |
+| `DATABASE_URL` | PostgreSQL connection string (Neon; SSL via URL) | required for persistence |
 
 See `.env.example`. Never commit real secrets. **Never** put
-`SUPABASE_SERVICE_ROLE_KEY` in the Next.js env or any `NEXT_PUBLIC_*`
-variable.
+`DATABASE_URL` in the Next.js env or any `NEXT_PUBLIC_*` variable.
 
-Apply schema from `supabase/migrations/` (see `supabase/README.md`) before
-enabling dashboard saves in production.
+Apply schema from `migrations/0001_initial_persistence.sql` (see
+`migrations/README.md`) before enabling dashboard saves in production.
+
+Neon may scale compute to zero when idle. The API uses SQLAlchemy
+`pool_pre_ping=True` so the first request after a cold start can recover
+from stale connections.
 
 ### Health endpoints
 
@@ -111,15 +113,14 @@ Build-time (inlined into the browser bundle):
 ```bash
 NEXT_PUBLIC_API_URL=https://your-api.example.com
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
-CLERK_SECRET_KEY=sk_...   # Next.js server only (not Supabase)
+CLERK_SECRET_KEY=sk_...   # Next.js server only
 ```
 
 If unset at build time, the client falls back to `http://localhost:8000`
 (local development only). Production builds **must** set
 `NEXT_PUBLIC_API_URL` to the deployed API origin.
 
-Frontend needs Clerk keys only. Persistence secrets
-(`SUPABASE_SERVICE_ROLE_KEY`) stay on the FastAPI host.
+Frontend needs Clerk keys only. `DATABASE_URL` stays on the FastAPI host.
 
 See `frontend/.env.example`.
 
@@ -169,7 +170,7 @@ explicit allow-list.
   `clerk_user_id`. Public `POST /api/v1/match` remains available for guests.
 - Guest analysis limits are client-side for product flow only; public
   production enforcement should be server-backed.
-- Supabase service-role key is backend-only — never ship it to Next.js.
+- `DATABASE_URL` is backend-only — never ship it to Next.js.
 - Do not expose debug mode or Python tracebacks to clients (API returns
   structured `detail` messages only).
-  Do not commit Clerk or Supabase secrets.
+  Do not commit Clerk or database secrets.

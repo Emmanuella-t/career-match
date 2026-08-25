@@ -1,4 +1,4 @@
-/** Authenticated persistence API helpers (Clerk token → FastAPI → Supabase). */
+/** Authenticated persistence API helpers (Clerk token → FastAPI → Postgres). */
 
 import { apiFetch, type MatchResponse } from "@/lib/api";
 

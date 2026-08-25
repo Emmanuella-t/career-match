@@ -159,7 +159,7 @@ MiniLM; the encoder loads on first semantic/hybrid request.
 | Mode | How | What you get |
 | --- | --- | --- |
 | **Guest** | Landing → **Try Career Match** → `/match` | 2 free successful analyses with the real matcher API; **no persistence** |
-| **Authenticated** | **Log In** / **Sign Up** (Clerk) | Unlimited `/match`, dashboard with **saved resumes**, **match history**, and **saved jobs** (Supabase) |
+| **Authenticated** | **Log In** / **Sign Up** (Clerk) | Unlimited `/match`, dashboard with **saved resumes**, **match history**, and **saved jobs** (Neon Postgres) |
 
 On a guest’s third analysis attempt, Career Match shows an auth gate
 (Create Account / Log In / Not now) and keeps the current resume, job
@@ -176,10 +176,10 @@ Guest analyses are never written to the database. Empty dashboard lists
 remain honest empty states when the user has no saved data.
 
 **Auth:** [Clerk](https://clerk.com) via `@clerk/nextjs` — sessions and
-protected `/dashboard`. **Persistence:** Supabase Postgres via FastAPI
-(service-role key stays backend-only). Clerk JWT is verified on
-persistence endpoints; public `POST /api/v1/match` remains available for
-guests. See `supabase/README.md` and root `.env.example`.
+protected `/dashboard`. **Persistence:** Neon Postgres via FastAPI,
+SQLAlchemy, and psycopg (`DATABASE_URL` stays backend-only). Clerk JWT is
+verified on persistence endpoints; public `POST /api/v1/match` remains
+available for guests. See `migrations/README.md` and root `.env.example`.
 
 Guest usage counting is still client-side for this milestone and is not
 tamper-proof; production public enforcement should be server-backed.
@@ -192,7 +192,7 @@ Run both services:
 
 ```bash
 python -m pip install -e ".[dev]"
-# Optional for persistence: set SUPABASE_* and CLERK_ISSUER (see .env.example)
+# Optional for persistence: set DATABASE_URL and CLERK_ISSUER (see .env.example)
 uvicorn career_match.api.app:app --reload --host 127.0.0.1 --port 8000
 ```
 
@@ -207,7 +207,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). Use **Try Career Match**
 for guest mode, or **Log In** / **Sign Up** for the dashboard. Apply the
-SQL in `supabase/migrations/` before expecting dashboard saves to succeed.
+SQL in `migrations/0001_initial_persistence.sql` before expecting dashboard saves to succeed.
 The match UI calls FastAPI `POST /api/v1/match` (`NEXT_PUBLIC_API_URL`,
 default `http://localhost:8000`). API docs: `http://127.0.0.1:8000/docs`.
 

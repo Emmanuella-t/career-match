@@ -19,8 +19,8 @@ product UI, and so a future serving API can sit between them.
            ▼                 │
 ┌──────────────────┐  ┌──────┴────────────────────────┐
 │ Persistence      │  │  ML — `src/career_match/`     │
-│ Supabase Postgres│  │  Lexical / semantic / hybrid  │
-│ (service role)   │  │  + evaluation harness         │
+│ Neon Postgres    │  │  Lexical / semantic / hybrid  │
+│ SQLAlchemy/psycopg│ │  + evaluation harness         │
 └──────────────────┘  └───────────────────────────────┘
 ```
 
@@ -34,7 +34,7 @@ FastAPI `/api/v1/match`  →  ML matcher  →  results UI
             ↓ (optional Save analysis / resume / job CRUD)
 Clerk JWT verified on FastAPI
             ↓
-Supabase tables: user_profiles, resumes, match_analyses, saved_jobs
+Postgres tables: user_profiles, resumes, match_analyses, saved_jobs
 ```
 
 **Separated concerns**
@@ -43,7 +43,7 @@ Supabase tables: user_profiles, resumes, match_analyses, saved_jobs
 | --- | --- |
 | Authentication | Clerk (frontend sessions; backend JWKS verification) |
 | ML inference | FastAPI `POST /api/v1/match` → package matchers |
-| Persistence | Supabase Postgres via FastAPI service-role client |
+| Persistence | Neon Postgres via SQLAlchemy + psycopg (backend `DATABASE_URL`) |
 
 Guest usage for product flow is still **client-side** (local session id +
 count) and is not tamper-proof. Persistence queries are always scoped to
@@ -202,11 +202,11 @@ Tailwind, shadcn/ui). Routes:
 `/dashboard`, logout. Chosen for least App Router complexity without
 storing passwords in this monorepo.
 
-**Persistence:** Supabase Postgres (`user_profiles`, `resumes`,
-`match_analyses`, `saved_jobs`). FastAPI verifies Clerk Bearer tokens and
-scopes every query to `clerk_user_id`. The Supabase service-role key is
-backend-only. Authenticated users save analyses explicitly via **Save
-analysis**; guests never write to the database.
+**Persistence:** Neon Postgres (`user_profiles`, `resumes`,
+`match_analyses`, `saved_jobs`) via SQLAlchemy + psycopg. FastAPI verifies
+Clerk Bearer tokens and scopes every query to `clerk_user_id`.
+`DATABASE_URL` is backend-only. Authenticated users save analyses explicitly
+via **Save analysis**; guests never write to the database.
 
 **Guest mode:** two successful analyses without an account; the third
 attempt opens an auth gate and preserves resume/JD/matcher in
@@ -220,8 +220,8 @@ probabilities. PDF/DOCX upload is not implemented.
 
 Configure the API base with `NEXT_PUBLIC_API_URL` (default
 `http://localhost:8000`). Clerk keys: see `frontend/.env.example`.
-Persistence: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CLERK_ISSUER`
-on the API host (root `.env.example`). Schema: `supabase/migrations/`.
+Persistence: `DATABASE_URL`, `CLERK_ISSUER` on the API host (root
+`.env.example`). Schema: `migrations/0001_initial_persistence.sql`.
 Local workflow: run uvicorn and `npm run dev`, then open `http://localhost:3000`.
 
 ## What this repository is not
