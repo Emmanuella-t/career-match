@@ -105,6 +105,24 @@ python scripts/evaluate_hybrid.py --all
 
 Installation uses `pyproject.toml`. There is no root `requirements.txt`.
 
+## Live deployment
+
+Live deployment: **in progress**
+
+Architecture: hosted Next.js frontend → hosted FastAPI + MiniLM backend.
+See [docs/deployment.md](docs/deployment.md) for install, startup, CORS,
+environment variables, health/readiness, and cold-start notes.
+
+Production backend install / start:
+
+```bash
+python -m pip install -e ".[api,semantic]"
+python scripts/start_api_production.py
+```
+
+Production frontend build must set `NEXT_PUBLIC_API_URL` to the API origin.
+Backend CORS must list the frontend origin via `CAREER_MATCH_CORS_ORIGINS`.
+
 ## Setup (API)
 
 Install API extras (included in `.[dev]` for tests):
@@ -120,9 +138,17 @@ Or:
 python scripts/run_api.py --reload
 ```
 
-- Health: `GET http://127.0.0.1:8000/health`
-- Match: `POST http://127.0.0.1:8000/api/v1/match`
-- OpenAPI docs: `http://127.0.0.1:8000/docs`
+Production-style (no reload, `HOST`/`PORT`):
+
+```bash
+python -m pip install -e ".[api,semantic]"
+python scripts/start_api_production.py
+```
+
+- Health: `GET /health` (does not load MiniLM)
+- Ready: `GET /ready` (does not force MiniLM load)
+- Match: `POST /api/v1/match`
+- OpenAPI docs: `/docs`
 
 Default matcher is **semantic**. Optional body field `matcher` may be
 `semantic`, `hybrid`, or `lexical`. Importing the app does not download

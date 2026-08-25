@@ -83,7 +83,8 @@ job ────┤
 - Lexical-only eval: `python scripts/evaluate_benchmark_v0_2.py`
 
 Do not add LLMs or RAG in this layer. HTTP serving lives in
-`career_match.api`, not inside the matcher modules.
+`career_match.api`, not inside the matcher modules. Deployment notes:
+`docs/deployment.md`.
 
 ## HTTP API
 
@@ -92,14 +93,16 @@ Package: `career_match.api`.
 | Route | Purpose |
 | --- | --- |
 | `GET /health` | Liveness; does not load MiniLM |
+| `GET /ready` | Readiness; reports whether semantic model already loaded (no download) |
 | `POST /api/v1/match` | Score `resume_text` vs `job_description` |
 
 - Default matcher: **semantic** (strongest top-rank quality on frozen holdout
   v0.3; not a claim of universal superiority over hybrid pairwise gains)
 - Optional `matcher`: `semantic` | `hybrid` | `lexical`
 - Text limit: 50,000 characters per field
-- CORS allow-list for local Next.js origins only
+- CORS allow-list from `CAREER_MATCH_CORS_ORIGINS` (local defaults when unset)
 - MiniLM loads lazily on first semantic/hybrid request and is reused
+- Deploy notes: `docs/deployment.md`
 
 Example:
 

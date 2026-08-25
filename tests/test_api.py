@@ -57,6 +57,14 @@ def test_health_returns_ok(client: TestClient) -> None:
     assert response.json() == {"status": "ok"}
 
 
+def test_ready_returns_ready(client: TestClient) -> None:
+    response = client.get("/ready")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ready"
+    assert "semantic_model_loaded" in body
+
+
 def test_default_matcher_is_semantic(client: TestClient) -> None:
     response = client.post(
         "/api/v1/match",

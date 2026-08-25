@@ -35,6 +35,11 @@ jobs:
         run: |
           python -c "import career_match; print('Career Match import successful')"
           python -c "from career_match.api.app import app; print(app.title)"
+      - name: Production extras import
+        run: |
+          python -m pip install -e ".[api,semantic]"
+          python -c "from career_match.api.app import app; print(app.title)"
+          python -c "from career_match.api.settings import get_port, parse_cors_origins; print(get_port()); print(parse_cors_origins('https://app.example.com'))"
 
   frontend:
     name: Product prototype
@@ -54,4 +59,8 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Build
+        run: npm run build
+      - name: Build with production API URL
+        env:
+          NEXT_PUBLIC_API_URL: https://api.example.com
         run: npm run build
