@@ -67,26 +67,40 @@ explanation.
 
 ### Why this baseline exists
 
-It is the first measurable, reproducible, explainable matcher. Future
-embedding, transformer, LLM, or RAG rankers must **outperform it on the
-same evaluation harness** (`scripts/evaluate_baseline.py` and
-`data/evaluation/dev_relevance_fixture.json`) before they replace it.
+Future embedding, transformer, LLM, or RAG rankers must **outperform this
+baseline on development benchmark v0.2**
+(`data/evaluation/dev_benchmark_v0_2.json`,
+`scripts/evaluate_benchmark_v0_2.py`) before they replace it. The v0.1
+16-pair fixture remains a sanity check only.
 
-### Evaluation fixture limitations
+### Evaluation fixtures
 
-The development fixture (`career-match-dev-eval-v0.1`) contains 16
-synthetic resume/job pairs across four roles. It is a **development
-evaluation fixture**, not a production benchmark. It does **not** use
-legacy CSV category labels as relevance. It is not real candidate data.
-Sixteen pairs cannot represent a hiring funnel. There is no fairness
-audit and no human rater agreement.
+**v0.1** (`career-match-dev-eval-v0.1`) is a 16-pair **sanity-check
+development fixture**. It is too easy for model comparison: the lexical
+baseline ranks constructed strong matches above mismatches with perfect
+top-k metrics on that set. Keep it. Do not treat those metrics as a
+benchmark of matching quality.
 
-Measured results on that fixture are recorded in
-`reports/baseline_evaluation.md`. Those numbers only show that the
-baseline ranks constructed strong matches above constructed mismatches
-on this tiny set.
+**v0.2** (`career-match-dev-benchmark-v0.2`) is the harder **development
+evaluation benchmark** and the comparison target for this baseline, a
+future sentence-embedding model, and a future hybrid ranker.
+
+- 8 synthetic jobs, 24 synthetic resumes, 56 human-graded pairs
+- Overlapping families: Machine Learning Engineer, Data Scientist, Data
+  Analyst, Backend Engineer, Frontend Engineer, Full-Stack Engineer,
+  MLOps Engineer, Data Engineer
+- Hard cases: synonymy, negation, keyword stuffing, related-role overlap,
+  seniority mismatch, catalog misses
+- Labels are human-defined grades 0–3 with rationales, not model outputs
+- Not real candidate data and **not** a production benchmark
+- Does **not** use legacy CSV category labels as relevance
+
+Measured baseline results on v0.2 (untuned v0.1 weights) are in
+`reports/benchmark_v0_2_evaluation.md`. Poor numbers on v0.2 are expected
+and useful.
 
 ### Known failure modes
+
 
 - Skills outside the 32-entry catalog are invisible to the overlap
   channel (for example Kafka).
@@ -133,19 +147,46 @@ Matcher v0.1 is **not trained** on this CSV.
 
 ## Evaluation
 
-Ranking metrics on the synthetic development fixture (see
-`reports/baseline_evaluation.md` for the current snapshot):
+Comparison target: **development benchmark v0.2** (see
+`reports/benchmark_v0_2_evaluation.md`). Untuned Baseline Matcher v0.1
+on that set (mean over 8 jobs):
 
-- Binary Precision@K and Recall@K with relevant = grade ≥ 2
-- NDCG with gain `2^rel - 1`
-- Explicit ranking checks: strong > moderate, moderate > mismatch
+| Metric | Mean |
+| --- | ---: |
+| Precision@1 | 0.875 |
+| Precision@3 | 0.667 |
+| Recall@3 | 0.562 |
+| NDCG@3 | 0.849 |
+| NDCG (full pool of 7) | 0.929 |
+| Pairwise ordering accuracy | 0.709 |
 
-Those metrics are appropriate because each role has a fully labeled,
-graded candidate list. They are **not** production KPIs.
+Score ranges for grades 0–3 overlap. Mean score is not monotone in grade
+because synonym matches are under-scored and keyword-heavy mismatches
+are over-scored.
+
+v0.1 sanity-fixture metrics are intentionally **not** used as a model
+comparison signal.
+
+Binary Precision@K / Recall@K use relevant = grade ≥ 2. NDCG uses gain
+`2^rel - 1`. Those metrics are appropriate because each job has a fully
+labeled graded pool. They are **not** production KPIs.
 
 Classification accuracy from the original notebook is **not** restated
-here. That notebook mixed exploration and modeling in a single interactive
-document; it is preserved for history, not as a benchmark.
+here.
+
+## Known weaknesses on v0.2
+
+- Keyword stuffing can outrank a real Machine Learning Engineer
+- Synonym phrasing (*REST services*, *cloud infrastructure*, *serving ML
+  models*) collapses TF-IDF and skill overlap
+- Negated mentions (*No production Docker*) still count as skill hits
+- Related roles that share Python/SQL/Git/Docker are hard to separate
+- Intern vs 4+ year mismatches are weakly penalized if tools are named
+- Catalog misses include PostgreSQL, Spark, Airflow, and most paraphrases
+
+Future semantic models must be evaluated against **the same v0.2
+benchmark** with the same grades. Do not retune lexical weights just to
+inflate these numbers.
 
 ## Limitations and risks
 
@@ -166,11 +207,12 @@ human review path first.
 
 ## Next milestone
 
-1. Keep this lexical baseline as the comparison point.
-2. Expand labeled matching data without treating CSV categories as
-   relevance.
-3. Only then consider embedding models, and only if they beat this
-   baseline on the same harness.
+1. Keep Baseline Matcher v0.1 weights frozen as the lexical comparison
+   point.
+2. Evaluate future embedding or hybrid rankers on **v0.2**, not by
+   overfitting the v0.1 sanity fixture.
+3. Only replace the baseline if the new model improves P@1, P@3, pairwise
+   ordering, and synonym ranking on v0.2.
 
 ## Citation / provenance
 

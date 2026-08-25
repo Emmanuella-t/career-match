@@ -52,16 +52,19 @@ job text ────┤                                                 ├─ 
 - Configuration: `career_match.matching.config` (`TFIDF_WEIGHT=0.55`,
   `SKILL_OVERLAP_WEIGHT=0.45`).
 - Developer CLI: `python scripts/run_baseline_match.py --sample`
-- Evaluation: `python scripts/evaluate_baseline.py`
+- Evaluation: `python scripts/evaluate_baseline.py` (v0.1 sanity fixture)
+  and `python scripts/evaluate_benchmark_v0_2.py` (harder v0.2 benchmark)
 
 Do not add embeddings, transformers, LLMs, RAG, or a serving API in this
-layer until a later model beats this baseline on the same fixture.
+layer until a later model beats this baseline on **v0.2**.
 
 ## Data
 
 - **Raw source of truth:** `legacy/resume_dataset.csv` (preserved prototype).
-- **Development evaluation fixture:** `data/evaluation/dev_relevance_fixture.json`
-  (synthetic resume/job pairs; not a production benchmark).
+- **Development evaluation fixture (v0.1):** `data/evaluation/dev_relevance_fixture.json`
+  (16-pair sanity check; not a production benchmark).
+- **Development evaluation benchmark (v0.2):** `data/evaluation/dev_benchmark_v0_2.json`
+  (56-pair harder set for model comparison; not a production benchmark).
 - **Audit:** `python scripts/audit_legacy_dataset.py` writes
   `reports/legacy_dataset_audit.md`.
 
@@ -73,8 +76,10 @@ ground truth.
 
 `experiments/` remains reserved for notebooks. The first measured
 baseline lives in the matching package and is evaluated by
-`scripts/evaluate_baseline.py`, which writes
-`reports/baseline_evaluation.md`. Nothing in `experiments/` is production.
+`scripts/evaluate_baseline.py` (v0.1) and
+`scripts/evaluate_benchmark_v0_2.py` (v0.2), which write
+`reports/baseline_evaluation.md` and
+`reports/benchmark_v0_2_evaluation.md`. Nothing in `experiments/` is production.
 
 ## Product prototype
 

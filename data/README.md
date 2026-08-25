@@ -2,9 +2,13 @@
 
 Keep the original CSV in `legacy/resume_dataset.csv`.
 
-- `evaluation/dev_relevance_fixture.json` is a **development evaluation
-  fixture**: 16 synthetic resume/job pairs with human-defined relevance
-  grades. It is not real candidate data and not a production benchmark.
-  It does not use legacy category labels as ground truth.
+- `evaluation/dev_relevance_fixture.json` — **v0.1 sanity-check development
+  fixture** (16 synthetic pairs). Too easy for model comparison; keep it
+  for smoke tests.
+- `evaluation/dev_benchmark_v0_2.json` — **v0.2 development evaluation
+  benchmark** (8 jobs, 24 resumes, 56 human-graded pairs). Comparison
+  target for TF-IDF vs future models. Not real candidate data. Not a
+  production benchmark.
 
-Do not copy the raw prototype dataset into this directory.
+Neither file uses `legacy/resume_dataset.csv` category labels as
+relevance. Do not copy the raw prototype dataset into this directory.
