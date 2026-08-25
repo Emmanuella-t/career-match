@@ -1,0 +1,15 @@
+Build a responsive Career Match landing page using the included assets and the exact palette in brand-tokens.css.
+
+Requirements:
+- match the overall art direction of the provided landing-page-reference.png
+- use Warm Ivory as the page background
+- use Deep Evergreen for primary text and button backgrounds
+- use Career Green for highlighted hero text and accents
+- preserve a spacious, uncluttered layout
+- use a two-column hero layout on desktop and a stacked layout on mobile
+- use the included career-match-logo.png in the header
+- use the included hero-robot-reference.png as the right-side hero illustration
+- create rounded cards, clean typography, subtle borders, and soft shadows
+- build sections for: hero, features, how it works, why career match, final CTA, footer
+- do not introduce random gradients, extra shapes, decorative clutter, or off-brand colors
+- keep the page premium, calm, and recruiter-facing

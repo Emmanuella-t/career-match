@@ -1,0 +1,28 @@
+:root {
+  --cm-deep-evergreen: #173F35;
+  --cm-career-green: #2EBB68;
+  --cm-soft-mint: #8FDFC4;
+  --cm-warm-tangerine: #F28C52;
+  --cm-warm-ivory: #FAF8F2;
+  --cm-soft-white: #FFFFFF;
+  --cm-sage-mist: #E8F2EC;
+  --cm-charcoal: #202724;
+  --cm-stone-gray: #68716C;
+
+  --page-bg: var(--cm-warm-ivory);
+  --surface: var(--cm-soft-white);
+  --text-strong: var(--cm-deep-evergreen);
+  --text-body: var(--cm-charcoal);
+  --text-muted: var(--cm-stone-gray);
+  --accent: var(--cm-career-green);
+  --border-soft: rgba(23, 63, 53, 0.10);
+
+  --font-headline: "League Spartan", "Inter", Arial, sans-serif;
+  --font-body: "DM Sans", "Inter", Arial, sans-serif;
+  --font-logo: "Montserrat", "Inter", Arial, sans-serif;
+
+  --radius-card: 28px;
+  --radius-button: 16px;
+  --shadow-soft: 0 18px 40px rgba(23, 63, 53, 0.10);
+  --max-width: 1240px;
+}
