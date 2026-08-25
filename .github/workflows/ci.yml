@@ -56,11 +56,25 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install
         run: npm ci
+      - name: Unit tests
+        run: npm test
       - name: Lint
         run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
       - name: Build
+        env:
+          # CI placeholders only — not real Clerk credentials.
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xhZW0uY2FyZWVyLW1hdGNoLmNpJAo
+          CLERK_SECRET_KEY: sk_test_ci_placeholder_not_a_real_secret_key
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL: /login
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL: /signup
         run: npm run build
       - name: Build with production API URL
         env:
           NEXT_PUBLIC_API_URL: https://api.example.com
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xhZW0uY2FyZWVyLW1hdGNoLmNpJAo
+          CLERK_SECRET_KEY: sk_test_ci_placeholder_not_a_real_secret_key
+          NEXT_PUBLIC_CLERK_SIGN_IN_URL: /login
+          NEXT_PUBLIC_CLERK_SIGN_UP_URL: /signup
         run: npm run build

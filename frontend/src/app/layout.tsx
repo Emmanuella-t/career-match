@@ -6,6 +6,7 @@ import {
   Noto_Serif,
   Oswald,
 } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 
 import "./globals.css";
 
@@ -47,15 +48,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html
-      lang="en"
-      className={`${montserrat.variable} ${leagueSpartan.variable} ${oswald.variable} ${literata.variable} ${notoSerif.variable} h-full scroll-smooth antialiased`}
+    <ClerkProvider
+      signInUrl="/login"
+      signUpUrl="/signup"
+      afterSignOutUrl="/"
     >
-      <body className="flex min-h-full flex-col bg-background font-sans text-foreground">
-        {children}
-      </body>
-    </html>
+      <html
+        lang="en"
+        className={`${montserrat.variable} ${leagueSpartan.variable} ${oswald.variable} ${literata.variable} ${notoSerif.variable} h-full scroll-smooth antialiased`}
+      >
+        <body className="flex min-h-full flex-col bg-background font-sans text-foreground">
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
