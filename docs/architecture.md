@@ -18,7 +18,7 @@ product UI, and so a future serving API can sit between them.
 ┌────────────────────┴────────────────────────┐
 │  ML  —  `src/career_match/`                 │
 │  Data loading, parsing, extraction,         │
-│  matching contracts, evaluation helpers.    │
+│  Baseline Matcher v0.1, evaluation harness. │
 └─────────────────────────────────────────────┘
 ```
 
@@ -28,28 +28,53 @@ product UI, and so a future serving API can sit between them.
 | --- | --- | --- |
 | `career_match.data` | Load, validate, and audit the legacy CSV | Implemented |
 | `career_match.parsing` | Deterministic text normalization | Implemented |
-| `career_match.extraction` | Lexicon skill spans | Implemented (not a model) |
-| `career_match.matching` | Matcher protocol | Interface only |
-| `career_match.evaluation` | Precision / recall / F1 helpers | Implemented (no live scores) |
+| `career_match.extraction` | Lexicon skill spans (32 canonical skills) | Implemented (not a model) |
+| `career_match.matching` | Matcher protocol + **Baseline Matcher v0.1** | Implemented (lexical baseline) |
+| `career_match.evaluation` | Classification helpers + ranking metrics + fixture harness | Implemented |
 
-`UnimplementedMatcher.match()` raises `MatchingNotImplementedError` on
-purpose. Do not replace that with an unmeasured heuristic and call it a
-model.
+`BaselineMatcher` is the first matching-layer implementation: TF-IDF cosine
+similarity plus catalog skill overlap, combined with named provisional
+weights. The result is a 0–100 **baseline relevance score** with matched
+and missing skills. It is not a calibrated hiring probability.
+
+`UnimplementedMatcher.match()` still raises `MatchingNotImplementedError`
+for callers that must not silently pick up an unmeasured heuristic.
+
+## Matching layer (v0.1)
+
+```
+resume text ─┐
+             ├─ tokenize (keep C++, C#, .NET) ─ TF-IDF cosine ─┐
+job text ────┤                                                 ├─ hybrid score
+             └─ skill catalog extract ─ job-skill coverage ────┘
+```
+
+- Configuration: `career_match.matching.config` (`TFIDF_WEIGHT=0.55`,
+  `SKILL_OVERLAP_WEIGHT=0.45`).
+- Developer CLI: `python scripts/run_baseline_match.py --sample`
+- Evaluation: `python scripts/evaluate_baseline.py`
+
+Do not add embeddings, transformers, LLMs, RAG, or a serving API in this
+layer until a later model beats this baseline on the same fixture.
 
 ## Data
 
 - **Raw source of truth:** `legacy/resume_dataset.csv` (preserved prototype).
-- **Derived files:** `data/` (empty until a matching split is defined).
+- **Development evaluation fixture:** `data/evaluation/dev_relevance_fixture.json`
+  (synthetic resume/job pairs; not a production benchmark).
 - **Audit:** `python scripts/audit_legacy_dataset.py` writes
   `reports/legacy_dataset_audit.md`.
 
 The legacy labels are *resume categories*, not (resume, job) relevance
-pairs. Any matching experiment must construct its own task definition.
+pairs. Matching experiments must not treat those category labels as
+ground truth.
 
 ## Experiments
 
-`experiments/` is reserved for notebooks and scripts that train or compare
-matchers. Nothing in that directory is production.
+`experiments/` remains reserved for notebooks. The first measured
+baseline lives in the matching package and is evaluated by
+`scripts/evaluate_baseline.py`, which writes
+`reports/baseline_evaluation.md`. Nothing in `experiments/` is production.
 
 ## Product prototype
 
@@ -61,11 +86,12 @@ preserved copy of an earlier UI. Routes:
 - `/match` — lexicon skill-overlap demo (not a trained matcher)
 - `/architecture` — three-layer split in product language
 
-The UI must not import Python or invent a match percentage. Serving will be
-a separate process when a baseline exists.
+The UI must not import Python or invent a production match percentage.
+Serving is still a separate, unimplemented process.
 
 ## What this repository is not
 
 - Not an applicant-tracking system.
 - Not a production ranker.
 - Not a claim that KNN category accuracy equals hiring quality.
+- Not a claim that Baseline Matcher v0.1 is ready to rank real candidates.
