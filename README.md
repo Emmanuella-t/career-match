@@ -43,8 +43,9 @@ python scripts/evaluate_benchmark_v0_2.py
 ```
 
 Future sentence-embedding or hybrid rankers must be scored on v0.2 with
-the same human grades. Do not tune lexical weights against v0.2 just to
-raise the score.
+the same development relevance labels. Do not tune lexical weights against
+v0.2 just to raise the score. Those labels are not independently validated
+ground truth.
 
 ## Repository layout
 

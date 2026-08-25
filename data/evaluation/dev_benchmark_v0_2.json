@@ -2,7 +2,17 @@
   "name": "career-match-dev-benchmark-v0.2",
   "kind": "development evaluation benchmark",
   "version": "0.2",
-  "disclaimer": "Synthetic resume/job pairs for a harder development benchmark. Not real candidate data. Not a production benchmark. Human-defined relevance grades are ground truth for model comparison; they are not model outputs. Legacy CSV category labels are not used.",
+  "disclaimer": "Synthetic resume/job pairs constructed for controlled development evaluation. Not real candidate data. Not production hiring labels. Relevance grades are manually specified synthetic relevance judgments (development targets), not independently validated ground truth. No independent annotator agreement. Intended for model comparison and error analysis. Legacy CSV category labels are not used.",
+  "provenance": {
+    "synthetic": true,
+    "constructed_for": "controlled development evaluation",
+    "real_candidate_data": false,
+    "production_hiring_labels": false,
+    "independent_annotator_agreement": false,
+    "intended_use": "model comparison and error analysis",
+    "label_type": "manually specified synthetic relevance judgments",
+    "review_status": "awaiting/available for manual review"
+  },
   "relevant_threshold": 2,
   "comparison_note": "v0.1 (career-match-dev-eval-v0.1) is a 16-pair sanity-check fixture. v0.2 is the harder development benchmark for comparing TF-IDF, future sentence embeddings, and future hybrid rankers. Neither is a production benchmark.",
   "relevance_scale": {

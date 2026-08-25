@@ -6,9 +6,10 @@ Keep the original CSV in `legacy/resume_dataset.csv`.
   fixture** (16 synthetic pairs). Too easy for model comparison; keep it
   for smoke tests.
 - `evaluation/dev_benchmark_v0_2.json` — **v0.2 development evaluation
-  benchmark** (8 jobs, 24 resumes, 56 human-graded pairs). Comparison
-  target for TF-IDF vs future models. Not real candidate data. Not a
-  production benchmark.
+  benchmark** (8 jobs, 24 resumes, 56 pairs with manually specified
+  synthetic relevance judgments). Constructed for controlled development
+  evaluation and model comparison. Not real candidate data. Not
+  production hiring labels. No independent annotator agreement.
 
 Neither file uses `legacy/resume_dataset.csv` category labels as
 relevance. Do not copy the raw prototype dataset into this directory.

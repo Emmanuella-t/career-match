@@ -1,6 +1,6 @@
 # Baseline Matcher v0.1 on development benchmark v0.2
 
-Synthetic resume/job pairs for a harder development benchmark. Not real candidate data. Not a production benchmark. Human-defined relevance grades are ground truth for model comparison; they are not model outputs. Legacy CSV category labels are not used.
+Synthetic resume/job pairs constructed for controlled development evaluation. Not real candidate data. Not production hiring labels. Relevance grades are manually specified synthetic relevance judgments (development targets), not independently validated ground truth. No independent annotator agreement. Intended for model comparison and error analysis. Legacy CSV category labels are not used.
 
 This report is a **development error analysis**. It does **not** prove
 production matching quality. Matcher weights were **not** tuned on v0.2.
@@ -13,6 +13,16 @@ production matching quality. Matcher weights were **not** tuned on v0.2.
 - Unique synthetic resumes: **24**
 - Relevance judgments: **56**
 - Pool size: 7 labeled resumes per job
+
+## Provenance
+
+- Synthetic benchmark (no real candidate data)
+- Constructed for controlled development evaluation
+- No production hiring labels
+- No independent annotator agreement
+- Labels are development targets, not independently validated ground truth
+- Intended for model comparison and error analysis
+- Review aid: `reports/benchmark_v0_2_label_review.md` (status: awaiting/available for manual review)
 
 ## Role distribution
 
@@ -29,7 +39,8 @@ production matching quality. Matcher weights were **not** tuned on v0.2.
 
 ## Labeling scheme
 
-Human-defined grades (not model outputs):
+Manually specified synthetic relevance judgments (development
+targets, not independently validated ground truth):
 
 - `3` strong — right role family, required work largely present
 - `2` moderate — related role or partial skills

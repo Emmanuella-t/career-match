@@ -85,14 +85,18 @@ benchmark of matching quality.
 evaluation benchmark** and the comparison target for this baseline, a
 future sentence-embedding model, and a future hybrid ranker.
 
-- 8 synthetic jobs, 24 synthetic resumes, 56 human-graded pairs
+- 8 synthetic jobs, 24 synthetic resumes, 56 pairs with manually
+  specified synthetic relevance judgments
 - Overlapping families: Machine Learning Engineer, Data Scientist, Data
   Analyst, Backend Engineer, Frontend Engineer, Full-Stack Engineer,
   MLOps Engineer, Data Engineer
 - Hard cases: synonymy, negation, keyword stuffing, related-role overlap,
   seniority mismatch, catalog misses
-- Labels are human-defined grades 0–3 with rationales, not model outputs
-- Not real candidate data and **not** a production benchmark
+- Grades 0–3 with rationales are **benchmark-construction labels**
+  (development targets), not independently validated ground truth
+- No independent annotator agreement
+- Not real candidate data, not production hiring labels, and **not** a
+  production benchmark
 - Does **not** use legacy CSV category labels as relevance
 
 Measured baseline results on v0.2 (untuned v0.1 weights) are in

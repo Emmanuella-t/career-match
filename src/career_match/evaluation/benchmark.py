@@ -1,8 +1,10 @@
 """Loader and validator for development benchmark v0.2.
 
-The benchmark is synthetic. It is harder than the v0.1 sanity fixture and
-is still **not** a production benchmark. Labels are human-defined ground
-truth, not model outputs. Legacy CSV category labels are never used.
+The benchmark is synthetic and was constructed for controlled development
+evaluation. Relevance grades are manually specified synthetic relevance
+judgments (development targets), not independently validated ground truth.
+There is no real candidate data, no production hiring labels, and no
+independent annotator agreement. Legacy CSV category labels are never used.
 """
 
 from __future__ import annotations

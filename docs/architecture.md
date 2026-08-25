@@ -64,7 +64,9 @@ layer until a later model beats this baseline on **v0.2**.
 - **Development evaluation fixture (v0.1):** `data/evaluation/dev_relevance_fixture.json`
   (16-pair sanity check; not a production benchmark).
 - **Development evaluation benchmark (v0.2):** `data/evaluation/dev_benchmark_v0_2.json`
-  (56-pair harder set for model comparison; not a production benchmark).
+  (56-pair harder set for model comparison). Synthetic; constructed for
+  controlled development evaluation. Labels are benchmark-construction
+  development targets, not independently validated ground truth.
 - **Audit:** `python scripts/audit_legacy_dataset.py` writes
   `reports/legacy_dataset_audit.md`.
 

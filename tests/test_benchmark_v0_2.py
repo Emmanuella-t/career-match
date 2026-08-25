@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import json
 
 import pytest
 
@@ -10,6 +11,7 @@ from career_match.core.exceptions import BenchmarkValidationError
 from career_match.evaluation.benchmark import (
     BENCHMARK_KIND,
     BENCHMARK_NAME,
+    default_benchmark_path,
     load_benchmark,
     parse_benchmark,
     validate_benchmark_payload,
@@ -57,7 +59,9 @@ def test_shipped_benchmark_parses_and_validates() -> None:
     benchmark = load_benchmark()
     assert benchmark.name == BENCHMARK_NAME
     assert benchmark.kind == BENCHMARK_KIND
-    assert "not a production benchmark" in benchmark.disclaimer.lower()
+    assert "not independently validated ground truth" in benchmark.disclaimer.lower()
+    assert "human-defined" not in benchmark.disclaimer.lower()
+    assert "human-labeled" not in benchmark.disclaimer.lower()
     assert benchmark.job_count == 8
     assert benchmark.resume_count == 24
     assert benchmark.pair_count == 56
@@ -72,6 +76,22 @@ def test_shipped_benchmark_parses_and_validates() -> None:
         "MLOps Engineer",
         "Data Engineer",
     }
+
+
+def test_shipped_benchmark_records_synthetic_provenance() -> None:
+    payload = json.loads(default_benchmark_path().read_text(encoding="utf-8"))
+    provenance = payload["provenance"]
+    assert provenance["synthetic"] is True
+    assert provenance["constructed_for"] == "controlled development evaluation"
+    assert provenance["real_candidate_data"] is False
+    assert provenance["production_hiring_labels"] is False
+    assert provenance["independent_annotator_agreement"] is False
+    assert provenance["intended_use"] == "model comparison and error analysis"
+    assert provenance["label_type"] == "manually specified synthetic relevance judgments"
+    assert provenance["review_status"] == "awaiting/available for manual review"
+    judgments = payload["judgments"]
+    assert len(judgments) == 56
+    assert all("grade" in item and "rationale" in item for item in judgments)
 
 
 def test_each_job_covers_strong_mismatch_and_multiple_grades() -> None:
