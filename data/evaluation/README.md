@@ -17,8 +17,10 @@ validated ground truth. Binary ranking metrics treat grades ≥ 2 as
 relevant.
 
 **v0.3** was created before hybrid-matcher development and should remain
-frozen during that milestone. Accidental edits are detected by comparing
-the JSON file SHA-256 to the manifest (reproducibility, not security).
+frozen during that milestone. Accidental content edits are detected by
+comparing a SHA-256 of the **canonical JSON serialization** (LF,
+`indent=2`) to `holdout_benchmark_v0_3.manifest.json` (reproducibility,
+not security).
 
 ```bash
 python scripts/evaluate_baseline.py

@@ -16,8 +16,9 @@ The holdout JSON was not modified after these scores were computed.
 - Unique synthetic resumes: **29**
 - Judgments: **72**
 - Roles: Machine Learning Engineer, Applied AI Engineer, Data Scientist, Data Analyst, Backend Engineer, Full-Stack Engineer, MLOps Engineer, Data Engineer, NLP Engineer
-- SHA-256: `685d458e0c485afc9018c43d49f696c9b2783c85a637d85f1534bc759aa2f492`
-- Checksum purpose: reproducibility (detect accidental edits), not security
+- SHA-256: `3373f60631e4994444ba888f25827054c5597343a349b16705cb5633e90c7c2d`
+- Checksum purpose: reproducibility (detect accidental content edits), not security
+- Checksum input: canonical JSON serialization (LF, indent=2), not raw checkout bytes
 
 ## Provenance
 

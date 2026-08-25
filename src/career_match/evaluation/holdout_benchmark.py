@@ -52,8 +52,16 @@ def default_holdout_manifest_path() -> Path:
 
 
 def canonical_benchmark_bytes(path: Path | None = None) -> bytes:
-    """Return UTF-8 file bytes used for the reproducibility checksum."""
-    return (path or default_holdout_path()).read_bytes()
+    """Return canonical UTF-8 JSON bytes (LF newlines) for the checksum.
+
+    Parsing then re-serializing avoids Windows CRLF vs Linux LF file-byte
+    mismatches. Content identity is what matters for reproducibility.
+    """
+    payload = json.loads((path or default_holdout_path()).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise BenchmarkValidationError("Holdout benchmark must contain a JSON object.")
+    text = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
+    return text.encode("utf-8")
 
 
 def sha256_hex(data: bytes) -> str:
