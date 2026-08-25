@@ -6,13 +6,14 @@ product UI, and so a future serving API can sit between them.
 ```
 ┌─────────────────────────────────────────────┐
 │  Product  —  Next.js prototype (`frontend/`)│
-│  Recruiter/candidate flows. No trained      │
-│  matching weights live here.                │
+│  Recruiter/candidate flows. Optional HTTP   │
+│  client helper calls the API.               │
 └────────────────────▲────────────────────────┘
-                     │ HTTP (future)
+                     │ HTTP
 ┌────────────────────┴────────────────────────┐
-│  Serving  —  not implemented                │
-│  Versioned inference, auth, rate limits.    │
+│  Serving  —  FastAPI (`career_match.api`)   │
+│  POST /api/v1/match, GET /health            │
+│  Default matcher: semantic                  │
 └────────────────────▲────────────────────────┘
                      │ package import
 ┌────────────────────┴────────────────────────┐
@@ -20,6 +21,17 @@ product UI, and so a future serving API can sit between them.
 │  Lexical, semantic, and hybrid matchers,    │
 │  plus evaluation harness.                   │
 └─────────────────────────────────────────────┘
+```
+
+```
+Next.js frontend
+    ↓
+FastAPI service
+    ↓
+Matcher interface
+    ├── Semantic Matcher v0.1 (default)
+    ├── Hybrid Matcher v0.1
+    └── Lexical Baseline v0.1
 ```
 
 ## ML package
@@ -30,6 +42,7 @@ product UI, and so a future serving API can sit between them.
 | `career_match.parsing` | Deterministic text normalization | Implemented |
 | `career_match.extraction` | Lexicon skill spans + evidence/negation heuristics (32 canonical skills) | Implemented (not a model) |
 | `career_match.matching` | Matcher protocol + lexical + semantic + **hybrid** matchers | Implemented (not production) |
+| `career_match.api` | FastAPI service exposing matchers over HTTP | Implemented (local-dev serving) |
 | `career_match.evaluation` | Classification helpers + ranking metrics + fixture/holdout harness | Implemented |
 
 `BaselineMatcher` is the first matching-layer implementation: TF-IDF cosine
@@ -66,7 +79,59 @@ job ────┤
 - Hybrid eval: `python scripts/evaluate_hybrid.py --all`
 - Lexical-only eval: `python scripts/evaluate_benchmark_v0_2.py`
 
-Do not add LLMs, RAG, or a serving API in this layer.
+Do not add LLMs or RAG in this layer. HTTP serving lives in
+`career_match.api`, not inside the matcher modules.
+
+## HTTP API
+
+Package: `career_match.api`.
+
+| Route | Purpose |
+| --- | --- |
+| `GET /health` | Liveness; does not load MiniLM |
+| `POST /api/v1/match` | Score `resume_text` vs `job_description` |
+
+- Default matcher: **semantic** (strongest top-rank quality on frozen holdout
+  v0.3; not a claim of universal superiority over hybrid pairwise gains)
+- Optional `matcher`: `semantic` | `hybrid` | `lexical`
+- Text limit: 50,000 characters per field
+- CORS allow-list for local Next.js origins only
+- MiniLM loads lazily on first semantic/hybrid request and is reused
+
+Example:
+
+```bash
+curl -s http://127.0.0.1:8000/api/v1/match \
+  -H "Content-Type: application/json" \
+  -d "{\"resume_text\":\"Python FastAPI Docker Git\",\"job_description\":\"Backend Engineer using Python and Docker\",\"matcher\":\"semantic\"}"
+```
+
+Example response shape:
+
+```json
+{
+  "matcher": "Semantic Matcher v0.1",
+  "matcher_version": "0.1.0",
+  "overall_score": 72.4,
+  "semantic_score": 72.4,
+  "tfidf_score": null,
+  "skill_overlap_score": null,
+  "matched_skills": [],
+  "missing_skills": [],
+  "weak_or_negated_skills": [],
+  "disclaimer": "This score reflects resume-to-job relevance and is not a hiring probability."
+}
+```
+
+Run locally:
+
+```bash
+python -m pip install -e ".[dev,api]"
+uvicorn career_match.api.app:app --reload
+# or: python scripts/run_api.py --reload
+```
+
+OpenAPI UI: `http://127.0.0.1:8000/docs`
 
 ## Data
 
@@ -110,14 +175,15 @@ preserved copy of an earlier UI. Routes:
 - `/match` — lexicon skill-overlap demo (not a trained matcher)
 - `/architecture` — three-layer split in product language
 
-The UI must not import Python or invent a production match percentage.
-Serving is still a separate, unimplemented process.
+The UI must not invent a production match percentage. It may call the
+FastAPI service via `frontend/src/lib/api.ts` (`NEXT_PUBLIC_API_URL`,
+default `http://localhost:8000`).
 
 ## What this repository is not
 
 - Not an applicant-tracking system.
-- Not a production ranker.
+- Not a production ranker with auth, multi-tenant isolation, or SLAs.
 - Not a claim that KNN category accuracy equals hiring quality.
-- Not a claim that Baseline Matcher v0.1 or Semantic Matcher v0.1 is ready
-  to rank real candidates.
-- Not a hybrid of TF-IDF and embeddings.
+- Not a claim that Baseline, Semantic, or Hybrid Matcher v0.1 is ready
+  to rank real candidates without human review.
+- Not an LLM or RAG system.

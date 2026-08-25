@@ -271,11 +271,18 @@ Do not tune matchers against v0.3. v0.2 remains the development set.
 ## Intended use
 
 - **In scope now (development):** ranking constructed resume/job pairs,
-  inspecting skill evidence, comparing later models to this baseline.
-- **Out of scope now:** automated reject/advance decisions, production
-  embeddings, demographic inference, serving an API.
+  inspecting skill evidence, comparing later models, and calling the local
+  FastAPI service (`POST /api/v1/match`; default matcher **semantic**).
+- **Out of scope now:** automated reject/advance decisions, demographic
+  inference, authenticated multi-tenant production serving.
 - **Out of scope always without review:** using category-classifier
   accuracy as a hiring KPI.
+
+Serving note: the API default is Semantic Matcher v0.1 because it has the
+strongest top-rank quality on frozen holdout v0.3. Hybrid v0.1 improves
+pairwise ordering but regresses NDCG@3 on that set. That is a trade-off,
+not a claim that semantic is universally superior. API scores remain
+relevance signals, not hiring probabilities.
 
 ## Training data (legacy CSV)
 

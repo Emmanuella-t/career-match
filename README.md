@@ -105,6 +105,29 @@ python scripts/evaluate_hybrid.py --all
 
 Installation uses `pyproject.toml`. There is no root `requirements.txt`.
 
+## Setup (API)
+
+Install API extras (included in `.[dev]` for tests):
+
+```bash
+python -m pip install -e ".[dev]"
+uvicorn career_match.api.app:app --reload --host 127.0.0.1 --port 8000
+```
+
+Or:
+
+```bash
+python scripts/run_api.py --reload
+```
+
+- Health: `GET http://127.0.0.1:8000/health`
+- Match: `POST http://127.0.0.1:8000/api/v1/match`
+- OpenAPI docs: `http://127.0.0.1:8000/docs`
+
+Default matcher is **semantic**. Optional body field `matcher` may be
+`semantic`, `hybrid`, or `lexical`. Importing the app does not download
+MiniLM; the encoder loads on first semantic/hybrid request.
+
 ## Setup (frontend)
 
 Node.js 22+ and npm:
@@ -118,7 +141,8 @@ npm run dev
 ```
 
 The prototype runs at `http://127.0.0.1:43173`. It highlights lexicon overlaps
-only. It does not expose a production match score.
+by default. Optional API calls use `NEXT_PUBLIC_API_URL` (default
+`http://localhost:8000`) via `frontend/src/lib/api.ts`.
 
 ## Legacy prototype
 
