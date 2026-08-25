@@ -49,11 +49,25 @@ def test_hybrid_score_in_range_and_exposes_components() -> None:
         "Backend Engineer using Python, FastAPI, Docker, and Git.",
     )
     assert 0 <= result.overall_score <= 100
-    assert 0 <= result.semantic_similarity <= 100
-    assert 0 <= result.tfidf_similarity <= 100
+    assert 0 <= result.semantic_score <= 100
+    assert 0 <= result.tfidf_score <= 100
     assert 0 <= result.skill_overlap_score <= 100
+    assert result.semantic_score == result.semantic_similarity
+    assert result.tfidf_score == result.tfidf_similarity
     assert result.matched_skills
+    assert isinstance(result.weak_or_negated_skills, tuple)
     assert "Not a hiring probability." in result.evidence[-1]
+
+
+def test_hybrid_exposes_weak_or_negated_skills() -> None:
+    result = _matcher().match(
+        "Python and Git locally. No production Docker experience. "
+        "Skills: Python, Docker, Git, Kubernetes",
+        "Needs Python, Docker, Git, and Kubernetes.",
+    )
+    assert "docker" in result.weak_or_negated_skills
+    assert "docker" in result.missing_skills or "docker" not in result.matched_skills
+
 
 
 def test_hybrid_is_deterministic() -> None:
