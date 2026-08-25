@@ -31,8 +31,10 @@ class ExtractedSkill:
 class MatchResult:
     """Explainable baseline relevance result for one resume and one job.
 
-    All numeric scores use a 0–100 scale. They are a **baseline relevance
-    score**, not a calibrated probability that someone should be hired.
+    All numeric scores use a 0–100 scale. ``overall_score`` is a **relevance
+    score** from the matcher that produced the result (lexical baseline or
+    semantic similarity), not a calibrated probability that someone should
+    be hired.
     """
 
     overall_score: float
@@ -43,6 +45,7 @@ class MatchResult:
     resume_skills: tuple[str, ...]
     job_skills: tuple[str, ...]
     evidence: tuple[str, ...] = ()
+    semantic_similarity: float = 0.0
 
     @property
     def score(self) -> float:

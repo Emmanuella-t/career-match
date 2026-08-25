@@ -18,7 +18,7 @@ from career_match.evaluation.ranking import (
     recall_at_k,
 )
 from career_match.matching import BaselineMatcher
-from career_match.matching.config import MATCHER_NAME, BaselineConfig
+from career_match.matching.config import MATCHER_NAME
 
 RELEVANT_THRESHOLD = 2
 
@@ -37,6 +37,7 @@ class ScoredPair:
     skill_overlap_score: float
     matched_skills: tuple[str, ...]
     missing_skills: tuple[str, ...]
+    semantic_similarity: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -66,7 +67,7 @@ class GradeScoreStats:
 @dataclass(frozen=True)
 class BenchmarkEvaluation:
     matcher_name: str
-    config: BaselineConfig
+    config: object
     benchmark_name: str
     benchmark_kind: str
     disclaimer: str
@@ -154,8 +155,17 @@ def _evaluate_job(
                 skill_overlap_score=result.skill_overlap_score,
                 matched_skills=result.matched_skills,
                 missing_skills=result.missing_skills,
+                semantic_similarity=result.semantic_similarity,
             )
         )
+    return job_result_from_scored(job.job_id, job.title, scored)
+
+
+def job_result_from_scored(
+    job_id: str,
+    role: str,
+    scored: list[ScoredPair],
+) -> JobBenchmarkResult:
     ranking = tuple(sorted(scored, key=lambda item: item.overall_score, reverse=True))
     grades = [item.grade for item in ranking]
     scores = [item.overall_score for item in ranking]
@@ -164,8 +174,8 @@ def _evaluate_job(
     for item in ranking:
         by_grade[item.grade].append(item.overall_score)
     return JobBenchmarkResult(
-        job_id=job.job_id,
-        role=job.title,
+        job_id=job_id,
+        role=role,
         pool_size=k_full,
         ranking=ranking,
         precision_at_1=precision_at_k(grades, 1, relevant_threshold=RELEVANT_THRESHOLD),
@@ -180,24 +190,17 @@ def _evaluate_job(
     )
 
 
-def evaluate_benchmark_v0_2(
-    matcher: BaselineMatcher | None = None,
-    benchmark: DevelopmentBenchmark | None = None,
+def assemble_evaluation(
+    matcher_name: str,
+    config: object,
+    benchmark: DevelopmentBenchmark,
+    job_results: tuple[JobBenchmarkResult, ...],
 ) -> BenchmarkEvaluation:
-    """Score every v0.2 judgment with the untuned lexical baseline."""
-    matcher = matcher or BaselineMatcher()
-    benchmark = benchmark or load_benchmark()
-    grouped = benchmark.judgments_by_job()
-    job_results = tuple(
-        _evaluate_job(matcher, benchmark, job.job_id, grouped[job.job_id])
-        for job in benchmark.jobs
-        if job.job_id in grouped
-    )
     pairs = tuple(item for job in job_results for item in job.ranking)
     stats = _score_stats(pairs)
     return BenchmarkEvaluation(
-        matcher_name=MATCHER_NAME,
-        config=matcher.config,
+        matcher_name=matcher_name,
+        config=config,
         benchmark_name=benchmark.name,
         benchmark_kind=benchmark.kind,
         disclaimer=benchmark.disclaimer,
@@ -216,3 +219,19 @@ def evaluate_benchmark_v0_2(
         score_stats_by_grade=stats,
         overlapping_grade_bands=_overlapping_bands(stats),
     )
+
+
+def evaluate_benchmark_v0_2(
+    matcher: BaselineMatcher | None = None,
+    benchmark: DevelopmentBenchmark | None = None,
+) -> BenchmarkEvaluation:
+    """Score every v0.2 judgment with the untuned lexical baseline."""
+    matcher = matcher or BaselineMatcher()
+    benchmark = benchmark or load_benchmark()
+    grouped = benchmark.judgments_by_job()
+    job_results = tuple(
+        _evaluate_job(matcher, benchmark, job.job_id, grouped[job.job_id])
+        for job in benchmark.jobs
+        if job.job_id in grouped
+    )
+    return assemble_evaluation(MATCHER_NAME, matcher.config, benchmark, job_results)
