@@ -1,0 +1,13 @@
+{
+  "name": "career-match-holdout-benchmark-v0.3",
+  "version": "0.3",
+  "benchmark_file": "data/evaluation/holdout_benchmark_v0_3.json",
+  "sha256": "685d458e0c485afc9018c43d49f696c9b2783c85a637d85f1534bc759aa2f492",
+  "algorithm": "SHA-256",
+  "purpose": "reproducibility checksum to detect accidental holdout edits",
+  "not_security": true,
+  "frozen_before_hybrid_matcher": true,
+  "job_count": 9,
+  "resume_count": 29,
+  "judgment_count": 72
+}

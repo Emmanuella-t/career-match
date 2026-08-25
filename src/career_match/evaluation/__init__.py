@@ -10,6 +10,7 @@ from career_match.evaluation.benchmark_harness import evaluate_benchmark_v0_2
 from career_match.evaluation.compare import comparison_rows
 from career_match.evaluation.fixture import load_evaluation_fixture
 from career_match.evaluation.harness import evaluate_baseline
+from career_match.evaluation.holdout_benchmark import load_holdout_benchmark
 from career_match.evaluation.metrics import f1_score, precision, recall
 from career_match.evaluation.ranking import (
     ndcg_at_k,
@@ -27,6 +28,7 @@ __all__ = [
     "f1_score",
     "load_benchmark",
     "load_evaluation_fixture",
+    "load_holdout_benchmark",
     "ndcg_at_k",
     "pairwise_ordering_accuracy",
     "precision",
