@@ -92,10 +92,10 @@ def test_apply_model_cache_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) 
     apply_model_cache_env()
     assert os.environ["HF_HOME"] == cache
     assert os.environ["SENTENCE_TRANSFORMERS_HOME"] == cache
-    # Drop process-level cache overrides so later MiniLM tests use the default cache.
+    # Remove values set via os.environ.setdefault so later tests keep the
+    # default Hugging Face cache (monkeypatch alone would restore them).
     for key in cache_keys:
-        monkeypatch.delenv(key, raising=False)
-    monkeypatch.delenv("CAREER_MATCH_MODEL_CACHE_DIR", raising=False)
+        os.environ.pop(key, None)
 
 
 def test_health_does_not_load_semantic(bare_client: TestClient) -> None:
