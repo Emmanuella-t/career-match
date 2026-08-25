@@ -154,6 +154,29 @@ Default matcher is **semantic**. Optional body field `matcher` may be
 `semantic`, `hybrid`, or `lexical`. Importing the app does not download
 MiniLM; the encoder loads on first semantic/hybrid request.
 
+## Product access modes
+
+| Mode | How | What you get |
+| --- | --- | --- |
+| **Guest** | Landing → **Try Career Match** → `/match` | 2 free successful analyses with the real matcher API; no account required |
+| **Authenticated** | **Log In** / **Sign Up** (Clerk) | Dashboard shell + unlimited `/match` (same FastAPI matchers) |
+
+On a guest’s third analysis attempt, Career Match shows an auth gate
+(Create Account / Log In / Not now) and keeps the current resume, job
+description, and matcher selection in `sessionStorage` so work is not lost.
+
+The dashboard includes Overview, New Match, Recent Matches, My Resumes,
+Match History, Saved Jobs, and Profile / Settings. **Persistence is not
+implemented yet** — those areas use honest empty states (for example,
+“No saved matches yet.”). Guest usage counting is client-side for this
+milestone and is not tamper-proof; production enforcement should be
+server-backed.
+
+**Auth choice:** [Clerk](https://clerk.com) via `@clerk/nextjs` — email/password
+(or Clerk-configured methods), persistent sessions, protected `/dashboard`,
+and logout without storing passwords in this repo. Keys live in
+`frontend/.env.local` (see `frontend/.env.example`).
+
 ## Try Career Match locally
 
 Run both services:
@@ -169,14 +192,15 @@ uvicorn career_match.api.app:app --reload --host 127.0.0.1 --port 8000
 
 ```bash
 cd frontend
+cp .env.example .env.local   # add real Clerk keys for login/signup
 npm ci
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and use **Match** to paste a
-resume and job description. The UI calls FastAPI `POST /api/v1/match`
-(`NEXT_PUBLIC_API_URL`, default `http://localhost:8000`). API docs:
-`http://127.0.0.1:8000/docs`.
+Open [http://localhost:3000](http://localhost:3000). Use **Try Career Match**
+for guest mode, or **Log In** / **Sign Up** for the dashboard. The match UI
+calls FastAPI `POST /api/v1/match` (`NEXT_PUBLIC_API_URL`, default
+`http://localhost:8000`). API docs: `http://127.0.0.1:8000/docs`.
 
 ## Setup (frontend)
 
@@ -185,12 +209,17 @@ Node.js 22+ and npm:
 ```bash
 cd frontend
 npm ci
+npm test
 npm run lint
+npm run typecheck
 npm run build
 npm run dev
 ```
 
 The product UI runs at `http://localhost:3000` and talks to the matching API.
+Clerk publishable + secret keys are required for sign-in, sign-up, and
+dashboard protection; guest `/match` still needs the keys present so
+`ClerkProvider` can load (users may remain signed out).
 
 ## Legacy prototype
 

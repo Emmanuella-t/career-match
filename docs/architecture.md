@@ -6,7 +6,7 @@ product UI, and so a future serving API can sit between them.
 ```
 ┌─────────────────────────────────────────────┐
 │  Product  —  Next.js UI (`frontend/`)       │
-│  Paste resume + JD → Analyze → results      │
+│  Landing → Guest or Auth → Match / Dashboard│
 └────────────────────▲────────────────────────┘
                      │ HTTP POST /api/v1/match
 ┌────────────────────┴────────────────────────┐
@@ -23,8 +23,10 @@ product UI, and so a future serving API can sit between them.
 ```
 
 ```
-Next.js UI
-    ↓
+Landing
+    ├── Guest → /match (2 free successful analyses, then auth gate)
+    └── Auth (Clerk) → /dashboard and unlimited /match
+            ↓
 FastAPI `/api/v1/match`
     ↓
 selected matcher
@@ -36,6 +38,11 @@ structured relevance / explainability response
     ↓
 results UI (score, matched / missing / weak skills)
 ```
+
+Guest usage for this milestone is **client-side** (local session id +
+count). It is not tamper-proof; production public enforcement should be
+server-backed. Match history / resume / job persistence is **future** —
+the dashboard shell uses honest empty states until a database exists.
 
 ## ML package
 
@@ -176,9 +183,23 @@ the matching package and are evaluated by
 `frontend/` is the Career Match product UI (Next.js App Router, TypeScript,
 Tailwind, shadcn/ui). Routes:
 
-- `/` — product overview
-- `/match` — end-to-end resume–job analysis against FastAPI
-- `/architecture` — three-layer split in product language
+| Route | Access | Purpose |
+| --- | --- | --- |
+| `/` | Public | Landing |
+| `/match` | Public (guest or signed-in) | Real resume–job analysis |
+| `/login` | Public | Clerk sign-in |
+| `/signup` | Public | Clerk sign-up |
+| `/dashboard` | Protected | Authenticated workspace shell |
+| `/architecture` | Public | Product-language architecture |
+
+**Auth:** Clerk (`@clerk/nextjs`) — email/password sessions, protected
+`/dashboard`, logout. Chosen for least App Router complexity without
+storing passwords in this monorepo.
+
+**Guest mode:** two successful analyses without an account; the third
+attempt opens an auth gate and preserves resume/JD/matcher in
+`sessionStorage` (not query strings). Authenticated users bypass the
+limit and reuse the same `/match` + FastAPI path.
 
 Flow: paste resume and job text → `Analyze Match` →
 `frontend/src/lib/api.ts` calls `POST /api/v1/match` → display relevance score
@@ -186,14 +207,17 @@ and skill explainability. Default matcher is semantic. Scores are not hiring
 probabilities. PDF/DOCX upload is not implemented.
 
 Configure the API base with `NEXT_PUBLIC_API_URL` (default
-`http://localhost:8000`). Local workflow: run uvicorn and `npm run dev`, then
-open `http://localhost:3000`.
+`http://localhost:8000`). Clerk keys: see `frontend/.env.example`. Local
+workflow: run uvicorn and `npm run dev`, then open `http://localhost:3000`.
 
 ## What this repository is not
 
 - Not an applicant-tracking system.
-- Not a production ranker with auth, multi-tenant isolation, or SLAs.
+- Not a multi-tenant production ranker with SLAs or server-enforced guest
+  quotas (guest limits are client-side for this milestone).
 - Not a claim that KNN category accuracy equals hiring quality.
 - Not a claim that Baseline, Semantic, or Hybrid Matcher v0.1 is ready
   to rank real candidates without human review.
 - Not an LLM or RAG system.
+- Not a claim that match history, resumes, or saved jobs are persisted
+  (dashboard empty states only until a database is added).
