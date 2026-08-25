@@ -1,4 +1,4 @@
-"""Authenticated persistence HTTP routes (Clerk + Supabase)."""
+"""Authenticated persistence HTTP routes (Clerk + Postgres)."""
 
 from __future__ import annotations
 

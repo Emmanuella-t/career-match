@@ -1,12 +1,11 @@
--- Career Match authenticated persistence schema (Supabase Postgres).
+-- Career Match authenticated persistence schema (PostgreSQL / Neon).
 -- Identity: Clerk user IDs (clerk_user_id). No passwords stored here.
--- Apply with the Supabase SQL editor or CLI:
---   supabase db push
---   or: psql "$DATABASE_URL" -f supabase/migrations/20260325_000001_persistence_schema.sql
 --
--- App access uses the service-role key from the FastAPI backend only.
--- Row Level Security is enabled as defense-in-depth; service role bypasses RLS.
--- Never expose SUPABASE_SERVICE_ROLE_KEY to the Next.js client.
+-- Apply with Neon SQL Editor or psql:
+--   psql "$DATABASE_URL" -f migrations/0001_initial_persistence.sql
+--
+-- All access goes through the FastAPI backend with verified Clerk JWTs.
+-- Never expose DATABASE_URL or database credentials to the Next.js client.
 
 create extension if not exists "pgcrypto";
 
@@ -127,14 +126,3 @@ drop trigger if exists saved_jobs_set_updated_at on public.saved_jobs;
 create trigger saved_jobs_set_updated_at
   before update on public.saved_jobs
   for each row execute function public.set_updated_at();
-
--- ---------------------------------------------------------------------------
--- RLS (defense-in-depth; backend uses service role which bypasses RLS)
--- ---------------------------------------------------------------------------
-alter table public.user_profiles enable row level security;
-alter table public.resumes enable row level security;
-alter table public.match_analyses enable row level security;
-alter table public.saved_jobs enable row level security;
-
--- No policies for anon/authenticated roles: direct client access is denied.
--- All reads/writes go through FastAPI with a verified Clerk identity.

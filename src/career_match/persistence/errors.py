@@ -8,7 +8,7 @@ class PersistenceError(Exception):
 
 
 class PersistenceNotConfiguredError(PersistenceError):
-    """Supabase env vars are missing."""
+    """DATABASE_URL is missing."""
 
 
 class PersistenceUnavailableError(PersistenceError):

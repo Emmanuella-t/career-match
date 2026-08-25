@@ -10,8 +10,8 @@ Environment variables (optional):
   sentence-transformers model cache when the host needs an explicit path.
 - ``CLERK_ISSUER`` / ``CLERK_JWKS_URL`` — Clerk JWT verification for
   persistence routes.
-- ``SUPABASE_URL`` / ``SUPABASE_SERVICE_ROLE_KEY`` — Postgres persistence
-  (backend only; never expose the service-role key to the browser).
+- ``DATABASE_URL`` — PostgreSQL connection string (Neon in production;
+  backend only — never expose to the browser).
 
 Importing this module does not download MiniLM.
 """

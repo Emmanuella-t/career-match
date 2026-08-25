@@ -1,4 +1,4 @@
-"""Authenticated persistence for Career Match (Supabase Postgres)."""
+"""Authenticated persistence for Career Match (Neon Postgres)."""
 
 from career_match.persistence.errors import (
     PersistenceError,
