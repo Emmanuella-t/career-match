@@ -150,6 +150,12 @@ explicit allow-list.
 ## Safety notes
 
 - Scores are relevance signals, not hiring probabilities.
-- No authentication or database is included in this deployment shape.
+- Frontend auth uses Clerk (see `frontend/.env.example`). The FastAPI
+  matcher service does not yet enforce auth or guest quotas.
+- Guest analysis limits are client-side for product flow only; public
+  production enforcement should be server-backed.
+- No application database yet — dashboard history/resumes/jobs are empty
+  states, not fabricated data.
 - Do not expose debug mode or Python tracebacks to clients (API returns
   structured `detail` messages only).
+  Do not commit Clerk secrets.

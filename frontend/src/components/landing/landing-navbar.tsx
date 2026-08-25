@@ -53,15 +53,29 @@ export function LandingNavbar() {
             )}
           </nav>
 
-          <Link
-            href="/match"
-            className={cn(
-              buttonVariants({ size: "lg" }),
-              "font-cta h-11 shrink-0 bg-primary px-5 text-primary-foreground hover:bg-primary/90",
-            )}
-          >
-            Try Career Match
-          </Link>
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <Link
+              href="/login"
+              className="hidden rounded-sm font-sans text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:inline-flex"
+            >
+              Log In
+            </Link>
+            <Link
+              href="/signup"
+              className="hidden rounded-sm font-sans text-sm font-medium text-primary hover:text-career-green focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 md:inline-flex"
+            >
+              Sign Up
+            </Link>
+            <Link
+              href="/match"
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "font-cta h-11 shrink-0 bg-primary px-5 text-primary-foreground hover:bg-primary/90",
+              )}
+            >
+              Try Career Match
+            </Link>
+          </div>
         </div>
 
         <nav
@@ -85,6 +99,12 @@ export function LandingNavbar() {
               </a>
             ),
           )}
+          <Link href="/login" className="hover:text-foreground sm:hidden">
+            Log In
+          </Link>
+          <Link href="/signup" className="hover:text-foreground md:hidden">
+            Sign Up
+          </Link>
         </nav>
       </div>
     </header>
