@@ -41,6 +41,13 @@ export const metadata: Metadata = {
   title: "Career Match",
   description:
     "Explainable resume-to-job matching with relevance scores and skill evidence.",
+  icons: {
+    icon: [
+      { url: "/brand/career-match-favicon.svg", type: "image/svg+xml" },
+      { url: "/brand/career-match-favicon.ico", sizes: "any" },
+    ],
+    apple: [{ url: "/brand/career-match-apple-touch-icon.png", sizes: "256x256" }],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

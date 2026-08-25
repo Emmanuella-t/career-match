@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BrandLogo } from "@/components/brand-mark";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -13,15 +14,15 @@ import { cn } from "@/lib/utils";
 export default function HomePage() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-14">
-      <section className="max-w-3xl space-y-4">
+      <section className="max-w-3xl space-y-5">
+        <BrandLogo priority className="max-w-sm sm:max-w-md" />
         <p className="font-[family-name:var(--font-support)] text-xs uppercase tracking-[0.16em] text-muted-foreground">
           Explainable resume matching
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
-          Career Match
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          Score a resume against a job with evidence you can inspect.
         </h1>
         <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-          Score a resume against a job description with clear skill evidence.
           The product UI calls the FastAPI matching service and shows matched,
           missing, and weak or negated skills—without treating the score as a
           hiring decision.

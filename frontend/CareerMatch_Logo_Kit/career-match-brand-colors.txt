@@ -1,0 +1,9 @@
+Deep Evergreen: #173F35
+Career Green: #2EBB68
+Soft Mint: #8FDFC4
+Warm Tangerine: #F28C52
+Warm Ivory: #FAF8F2
+Soft White: #FFFFFF
+Sage Mist: #E8F2EC
+Charcoal: #202724
+Stone Gray: #68716C
