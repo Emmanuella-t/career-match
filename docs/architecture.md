@@ -6,43 +6,49 @@ product UI, and so a future serving API can sit between them.
 ```
 ┌─────────────────────────────────────────────┐
 │  Product  —  Next.js UI (`frontend/`)       │
-│  Landing → Guest or Auth → Match / Dashboard│
+│  Landing → Guest or Auth (Clerk)            │
+│  → Match / Dashboard                        │
 └────────────────────▲────────────────────────┘
-                     │ HTTP POST /api/v1/match
+                     │ HTTP (+ Bearer for persistence)
 ┌────────────────────┴────────────────────────┐
 │  Serving  —  FastAPI (`career_match.api`)   │
-│  POST /api/v1/match, GET /health            │
-│  Default matcher: semantic                  │
-└────────────────────▲────────────────────────┘
-                     │ package import
-┌────────────────────┴────────────────────────┐
-│  ML  —  `src/career_match/`                 │
-│  Lexical, semantic, and hybrid matchers,    │
-│  plus evaluation harness.                   │
-└─────────────────────────────────────────────┘
+│  Public: POST /api/v1/match, /health        │
+│  Auth: resumes / matches / jobs (Clerk JWT) │
+└──────────┬─────────────────▲────────────────┘
+           │                 │ package import
+           ▼                 │
+┌──────────────────┐  ┌──────┴────────────────────────┐
+│ Persistence      │  │  ML — `src/career_match/`     │
+│ Supabase Postgres│  │  Lexical / semantic / hybrid  │
+│ (service role)   │  │  + evaluation harness         │
+└──────────────────┘  └───────────────────────────────┘
 ```
 
 ```
 Landing
     ├── Guest → /match (2 free successful analyses, then auth gate)
-    └── Auth (Clerk) → /dashboard and unlimited /match
+    │         → no database writes
+    └── Auth (Clerk) → /dashboard + unlimited /match
             ↓
-FastAPI `/api/v1/match`
-    ↓
-selected matcher
-    ├── Semantic Matcher v0.1 (default)
-    ├── Hybrid Matcher v0.1
-    └── Lexical Baseline v0.1
-    ↓
-structured relevance / explainability response
-    ↓
-results UI (score, matched / missing / weak skills)
+FastAPI `/api/v1/match`  →  ML matcher  →  results UI
+            ↓ (optional Save analysis / resume / job CRUD)
+Clerk JWT verified on FastAPI
+            ↓
+Supabase tables: user_profiles, resumes, match_analyses, saved_jobs
 ```
 
-Guest usage for this milestone is **client-side** (local session id +
-count). It is not tamper-proof; production public enforcement should be
-server-backed. Match history / resume / job persistence is **future** —
-the dashboard shell uses honest empty states until a database exists.
+**Separated concerns**
+
+| Concern | System |
+| --- | --- |
+| Authentication | Clerk (frontend sessions; backend JWKS verification) |
+| ML inference | FastAPI `POST /api/v1/match` → package matchers |
+| Persistence | Supabase Postgres via FastAPI service-role client |
+
+Guest usage for product flow is still **client-side** (local session id +
+count) and is not tamper-proof. Persistence queries are always scoped to
+the verified Clerk `sub`. Empty dashboard lists are honest empty states —
+no seed/fake rows.
 
 ## ML package
 
@@ -196,6 +202,12 @@ Tailwind, shadcn/ui). Routes:
 `/dashboard`, logout. Chosen for least App Router complexity without
 storing passwords in this monorepo.
 
+**Persistence:** Supabase Postgres (`user_profiles`, `resumes`,
+`match_analyses`, `saved_jobs`). FastAPI verifies Clerk Bearer tokens and
+scopes every query to `clerk_user_id`. The Supabase service-role key is
+backend-only. Authenticated users save analyses explicitly via **Save
+analysis**; guests never write to the database.
+
 **Guest mode:** two successful analyses without an account; the third
 attempt opens an auth gate and preserves resume/JD/matcher in
 `sessionStorage` (not query strings). Authenticated users bypass the
@@ -207,8 +219,10 @@ and skill explainability. Default matcher is semantic. Scores are not hiring
 probabilities. PDF/DOCX upload is not implemented.
 
 Configure the API base with `NEXT_PUBLIC_API_URL` (default
-`http://localhost:8000`). Clerk keys: see `frontend/.env.example`. Local
-workflow: run uvicorn and `npm run dev`, then open `http://localhost:3000`.
+`http://localhost:8000`). Clerk keys: see `frontend/.env.example`.
+Persistence: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CLERK_ISSUER`
+on the API host (root `.env.example`). Schema: `supabase/migrations/`.
+Local workflow: run uvicorn and `npm run dev`, then open `http://localhost:3000`.
 
 ## What this repository is not
 
@@ -219,5 +233,5 @@ workflow: run uvicorn and `npm run dev`, then open `http://localhost:3000`.
 - Not a claim that Baseline, Semantic, or Hybrid Matcher v0.1 is ready
   to rank real candidates without human review.
 - Not an LLM or RAG system.
-- Not a claim that match history, resumes, or saved jobs are persisted
-  (dashboard empty states only until a database is added).
+- Not automatic silent persistence of every match (users save analyses
+  explicitly; guests never persist).

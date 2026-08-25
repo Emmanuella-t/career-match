@@ -158,24 +158,31 @@ MiniLM; the encoder loads on first semantic/hybrid request.
 
 | Mode | How | What you get |
 | --- | --- | --- |
-| **Guest** | Landing → **Try Career Match** → `/match` | 2 free successful analyses with the real matcher API; no account required |
-| **Authenticated** | **Log In** / **Sign Up** (Clerk) | Dashboard shell + unlimited `/match` (same FastAPI matchers) |
+| **Guest** | Landing → **Try Career Match** → `/match` | 2 free successful analyses with the real matcher API; **no persistence** |
+| **Authenticated** | **Log In** / **Sign Up** (Clerk) | Unlimited `/match`, dashboard with **saved resumes**, **match history**, and **saved jobs** (Supabase) |
 
 On a guest’s third analysis attempt, Career Match shows an auth gate
 (Create Account / Log In / Not now) and keeps the current resume, job
 description, and matcher selection in `sessionStorage` so work is not lost.
 
-The dashboard includes Overview, New Match, Recent Matches, My Resumes,
-Match History, Saved Jobs, and Profile / Settings. **Persistence is not
-implemented yet** — those areas use honest empty states (for example,
-“No saved matches yet.”). Guest usage counting is client-side for this
-milestone and is not tamper-proof; production enforcement should be
-server-backed.
+Authenticated users can:
 
-**Auth choice:** [Clerk](https://clerk.com) via `@clerk/nextjs` — email/password
-(or Clerk-configured methods), persistent sessions, protected `/dashboard`,
-and logout without storing passwords in this repo. Keys live in
-`frontend/.env.local` (see `frontend/.env.example`).
+- save and manage resumes (paste text; no PDF parsing yet)
+- save job opportunities manually
+- save a successful analysis via **Save analysis** (not automatic)
+- open recent matches and history on `/dashboard`
+
+Guest analyses are never written to the database. Empty dashboard lists
+remain honest empty states when the user has no saved data.
+
+**Auth:** [Clerk](https://clerk.com) via `@clerk/nextjs` — sessions and
+protected `/dashboard`. **Persistence:** Supabase Postgres via FastAPI
+(service-role key stays backend-only). Clerk JWT is verified on
+persistence endpoints; public `POST /api/v1/match` remains available for
+guests. See `supabase/README.md` and root `.env.example`.
+
+Guest usage counting is still client-side for this milestone and is not
+tamper-proof; production public enforcement should be server-backed.
 
 ## Try Career Match locally
 
@@ -185,6 +192,7 @@ Run both services:
 
 ```bash
 python -m pip install -e ".[dev]"
+# Optional for persistence: set SUPABASE_* and CLERK_ISSUER (see .env.example)
 uvicorn career_match.api.app:app --reload --host 127.0.0.1 --port 8000
 ```
 
@@ -198,9 +206,10 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). Use **Try Career Match**
-for guest mode, or **Log In** / **Sign Up** for the dashboard. The match UI
-calls FastAPI `POST /api/v1/match` (`NEXT_PUBLIC_API_URL`, default
-`http://localhost:8000`). API docs: `http://127.0.0.1:8000/docs`.
+for guest mode, or **Log In** / **Sign Up** for the dashboard. Apply the
+SQL in `supabase/migrations/` before expecting dashboard saves to succeed.
+The match UI calls FastAPI `POST /api/v1/match` (`NEXT_PUBLIC_API_URL`,
+default `http://localhost:8000`). API docs: `http://127.0.0.1:8000/docs`.
 
 ## Setup (frontend)
 
