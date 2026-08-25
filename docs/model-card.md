@@ -1,8 +1,9 @@
 # Model card — Career Match
 
-**Status:** Baseline Matcher v0.1 is a development lexical baseline.
-There is still **no production matching model** and **no calibrated hiring
-score**.
+**Status:** Career Match has two independent development matchers:
+Baseline Matcher v0.1 (lexical) and Semantic Matcher v0.1 (MiniLM
+embeddings). There is still **no production matching model**, **no
+hybrid**, and **no calibrated hiring score**.
 
 This card describes current artifacts honestly. Later semantic models must
 be compared on the same evaluation framework before they replace this
@@ -12,10 +13,10 @@ baseline.
 
 | Field | Value |
 | --- | --- |
-| Model name | Baseline Matcher v0.1 |
-| Task | resume-to-job relevance scoring with inspectable skill evidence |
-| Implemented now | TF-IDF cosine similarity + catalog skill overlap |
-| Score type | baseline relevance on 0–100, **not** a hiring probability |
+| Model name | Baseline Matcher v0.1; Semantic Matcher v0.1 (independent) |
+| Task | resume-to-job relevance scoring |
+| Implemented now | lexical TF-IDF + skill overlap; standalone MiniLM cosine |
+| Score type | development relevance / similarity on 0–100, **not** a hiring probability |
 | Previous prototype | One-vs-rest k-nearest neighbors **category** classifier in `legacy/Resume_Screening.ipynb` |
 | Owners | Emmanuella Turkson |
 
@@ -67,11 +68,74 @@ explanation.
 
 ### Why this baseline exists
 
-Future embedding, transformer, LLM, or RAG rankers must **outperform this
-baseline on development benchmark v0.2**
-(`data/evaluation/dev_benchmark_v0_2.json`,
-`scripts/evaluate_benchmark_v0_2.py`) before they replace it. The v0.1
-16-pair fixture remains a sanity check only.
+It remains the transparent lexical comparison point. Semantic Matcher v0.1
+was measured on the same v0.2 benchmark without retuning these weights.
+A hybrid is **not** implemented until each approach is understood on its
+own.
+
+## Semantic Matcher v0.1
+
+Standalone sentence-embedding similarity. It does **not** use the 32-skill
+lexicon and is **not** mixed with TF-IDF.
+
+### Method
+
+1. Encode resume text and job text with
+   `sentence-transformers/all-MiniLM-L6-v2` (384-d, CPU).
+2. Cosine similarity of L2-normalized embeddings.
+3. `semantic_relevance = 100 * clip(cosine, 0, 1)`.
+
+The transformer is loaded on first encode, then reused. Importing
+`career_match` does not download the model.
+
+### What the score means
+
+A **semantic relevance / similarity** score on 0–100 for one resume vs
+one job. Nearby phrasing (*REST services* vs *REST APIs*, *cloud
+infrastructure* vs AWS) can match without catalog aliases.
+
+### What the score does not mean
+
+- Not a hiring, interview, or acceptance probability
+- Not candidate quality or seniority
+- Not production matching quality
+- Not a claim that embeddings should replace the lexical baseline in a
+  product UI
+
+### Evaluation (same v0.2 benchmark)
+
+See `reports/semantic_matcher_v0_1_evaluation.md` and
+`scripts/compare_matchers.py`. Mean over 8 jobs:
+
+| Metric | Lexical v0.1 | Semantic v0.1 | Δ |
+| --- | ---: | ---: | ---: |
+| Precision@1 | 0.875 | 1.000 | +0.125 |
+| Precision@3 | 0.667 | 0.792 | +0.125 |
+| Recall@3 | 0.562 | 0.688 | +0.125 |
+| NDCG@3 | 0.849 | 0.900 | +0.052 |
+| NDCG (full pool) | 0.929 | 0.956 | +0.028 |
+| Pairwise accuracy | 0.709 | 0.865 | +0.155 |
+
+These are **development-benchmark** results on 56 synthetic pairs. Grade
+score ranges still overlap.
+
+### Limitations and compute
+
+- MiniLM is not a negation model: backend and MLOps “no production Docker /
+  limited Kubernetes” resumes still rank #2.
+- Keyword stuffing (`r-mle-stuffing`) is no longer rank 1 on MLE but remains
+  #3 with a high score (75.7).
+- Synonym MLE improved (rank 7 → 5) but still sits below stuffing and
+  negation.
+- Data Engineer NDCG@3 fell (0.904 → 0.762) because the synonym resume
+  outranked the labeled strong match.
+- Load cost on this machine was ~3s for MiniLM plus ~0.3s to encode 32
+  texts, versus ~0.1s for the lexical baseline on 56 pairs.
+
+### Why this matcher exists
+
+To measure whether sentence embeddings help the failure modes of TF-IDF
+on the **same** labels, before anyone builds a hybrid.
 
 ### Evaluation fixtures
 
@@ -151,25 +215,19 @@ Matcher v0.1 is **not trained** on this CSV.
 
 ## Evaluation
 
-Comparison target: **development benchmark v0.2** (see
-`reports/benchmark_v0_2_evaluation.md`). Untuned Baseline Matcher v0.1
-on that set (mean over 8 jobs):
+Comparison target: **development benchmark v0.2**. Lexical snapshot:
+`reports/benchmark_v0_2_evaluation.md`. Semantic comparison:
+`reports/semantic_matcher_v0_1_evaluation.md`.
 
-| Metric | Mean |
-| --- | ---: |
-| Precision@1 | 0.875 |
-| Precision@3 | 0.667 |
-| Recall@3 | 0.562 |
-| NDCG@3 | 0.849 |
-| NDCG (full pool of 7) | 0.929 |
-| Pairwise ordering accuracy | 0.709 |
+Untuned Baseline Matcher v0.1 (mean over 8 jobs): Precision@1 0.875,
+NDCG@3 0.849, pairwise 0.709.
 
-Score ranges for grades 0–3 overlap. Mean score is not monotone in grade
-because synonym matches are under-scored and keyword-heavy mismatches
-are over-scored.
+Standalone Semantic Matcher v0.1 on the **same** labels: Precision@1
+1.000, NDCG@3 0.900, pairwise 0.865. Mean metrics improved; see the model
+section above for stuffing, negation, and the Data Engineer NDCG drop.
 
 v0.1 sanity-fixture metrics are intentionally **not** used as a model
-comparison signal.
+comparison signal. These numbers are **not** production KPIs.
 
 Binary Precision@K / Recall@K use relevant = grade ≥ 2. NDCG uses gain
 `2^rel - 1`. Those metrics are appropriate because each job has a fully
@@ -188,9 +246,10 @@ here.
 - Intern vs 4+ year mismatches are weakly penalized if tools are named
 - Catalog misses include PostgreSQL, Spark, Airflow, and most paraphrases
 
-Future semantic models must be evaluated against **the same v0.2
-benchmark** with the same grades. Do not retune lexical weights just to
-inflate these numbers.
+Future models, including any hybrid, must be evaluated against **the same
+v0.2 benchmark** with the same grades. Do not retune lexical weights just
+to inflate these numbers. Do not treat MiniLM mean gains as production
+readiness.
 
 ## Limitations and risks
 
@@ -211,12 +270,11 @@ human review path first.
 
 ## Next milestone
 
-1. Keep Baseline Matcher v0.1 weights frozen as the lexical comparison
-   point.
-2. Evaluate future embedding or hybrid rankers on **v0.2**, not by
-   overfitting the v0.1 sanity fixture.
-3. Only replace the baseline if the new model improves P@1, P@3, pairwise
-   ordering, and synonym ranking on v0.2.
+1. Keep both standalone matchers frozen as comparison points.
+2. Only consider a **hybrid** after it is shown to beat both systems on
+   v0.2, including stuffing, negation, and synonym ranking.
+3. Do not treat MiniLM mean-metric gains as a reason to drop the lexical
+   baseline or to ship a production ranker.
 
 ## Citation / provenance
 

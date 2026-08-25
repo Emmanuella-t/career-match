@@ -1,9 +1,12 @@
 # Experiments
 
-Reserved for matching baselines and error analysis notebooks.
+Reserved for matching notebooks.
 
-The lexical baseline is implemented in `src/career_match/matching/` and
-evaluated by `scripts/evaluate_baseline.py` (v0.1 sanity fixture) and
-`scripts/evaluate_benchmark_v0_2.py` (v0.2 development benchmark).
-Nothing in this folder is a production model. Embedding models are out of
-scope until they beat the untuned baseline on v0.2.
+Standalone matchers live in `src/career_match/matching/`:
+
+- Baseline Matcher v0.1 — TF-IDF + skill overlap
+- Semantic Matcher v0.1 — MiniLM cosine similarity
+
+Compare them with `scripts/compare_matchers.py` on v0.2. Nothing in this
+folder is a production model. A hybrid is intentionally not implemented
+until both standalone systems are measured.

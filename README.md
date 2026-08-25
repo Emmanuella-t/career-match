@@ -18,15 +18,27 @@ using TF-IDF cosine similarity and catalog skill overlap. The result is a
 production model.
 
 The comparison target is **development benchmark v0.2** (56 synthetic
-pairs, 8 overlapping roles, hard negatives). On that set the untuned
-lexical baseline reaches mean Precision@1 **0.875**, Precision@3
-**0.667**, and pairwise ordering accuracy **0.709**. Keyword stuffing,
-synonymy, and negation still fool it. Those numbers are a development
-snapshot, not production quality.
+pairs). Career Match currently compares two **standalone** matchers on
+that set:
 
-The older 16-pair v0.1 fixture is a sanity check only. It is too easy for
-model selection. Legacy notebook category labels are not matching ground
-truth.
+| Matcher | Precision@1 | NDCG@3 | Pairwise |
+| --- | ---: | ---: | ---: |
+| Lexical Baseline v0.1 (TF-IDF + skill overlap) | 0.875 | 0.849 | 0.709 |
+| Semantic Matcher v0.1 (MiniLM cosine) | 1.000 | 0.900 | 0.865 |
+
+These are **development-benchmark** results, not production quality.
+Keyword stuffing and negation still fool both systems in different ways.
+There is **no hybrid** of the two scores yet.
+
+The older 16-pair v0.1 fixture is a sanity check only. Legacy notebook
+category labels are not matching ground truth.
+
+## ML experimentation
+
+Lexical and semantic matchers are measured independently on the same
+v0.2 labels (`scripts/compare_matchers.py`). Do not tune lexical weights
+against v0.2. Sentence embeddings require `pip install -e ".[semantic]"`
+or `.[dev]`. Importing `career_match` does not download MiniLM.
 
 ## Evaluation benchmark
 
@@ -78,6 +90,7 @@ python scripts/audit_legacy_dataset.py
 python scripts/run_baseline_match.py --sample
 python scripts/evaluate_baseline.py
 python scripts/evaluate_benchmark_v0_2.py
+python scripts/compare_matchers.py
 ```
 
 Installation uses `pyproject.toml`. There is no root `requirements.txt`.
