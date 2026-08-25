@@ -5,11 +5,10 @@ product UI, and so a future serving API can sit between them.
 
 ```
 ┌─────────────────────────────────────────────┐
-│  Product  —  Next.js prototype (`frontend/`)│
-│  Recruiter/candidate flows. Optional HTTP   │
-│  client helper calls the API.               │
+│  Product  —  Next.js UI (`frontend/`)       │
+│  Paste resume + JD → Analyze → results      │
 └────────────────────▲────────────────────────┘
-                     │ HTTP
+                     │ HTTP POST /api/v1/match
 ┌────────────────────┴────────────────────────┐
 │  Serving  —  FastAPI (`career_match.api`)   │
 │  POST /api/v1/match, GET /health            │
@@ -24,14 +23,18 @@ product UI, and so a future serving API can sit between them.
 ```
 
 ```
-Next.js frontend
+Next.js UI
     ↓
-FastAPI service
+FastAPI `/api/v1/match`
     ↓
-Matcher interface
+selected matcher
     ├── Semantic Matcher v0.1 (default)
     ├── Hybrid Matcher v0.1
     └── Lexical Baseline v0.1
+    ↓
+structured relevance / explainability response
+    ↓
+results UI (score, matched / missing / weak skills)
 ```
 
 ## ML package
@@ -165,19 +168,23 @@ the matching package and are evaluated by
 `scripts/evaluate_hybrid.py` (hybrid development + holdout). Nothing in
 `experiments/` is production.
 
-## Product prototype
+## Product UI
 
-`frontend/` is an early Career Match product prototype built fresh in this
-repository (Next.js App Router, TypeScript, Tailwind, shadcn/ui). It is not a
-preserved copy of an earlier UI. Routes:
+`frontend/` is the Career Match product UI (Next.js App Router, TypeScript,
+Tailwind, shadcn/ui). Routes:
 
-- `/` — product overview and honest ML status
-- `/match` — lexicon skill-overlap demo (not a trained matcher)
+- `/` — product overview
+- `/match` — end-to-end resume–job analysis against FastAPI
 - `/architecture` — three-layer split in product language
 
-The UI must not invent a production match percentage. It may call the
-FastAPI service via `frontend/src/lib/api.ts` (`NEXT_PUBLIC_API_URL`,
-default `http://localhost:8000`).
+Flow: paste resume and job text → `Analyze Match` →
+`frontend/src/lib/api.ts` calls `POST /api/v1/match` → display relevance score
+and skill explainability. Default matcher is semantic. Scores are not hiring
+probabilities. PDF/DOCX upload is not implemented.
+
+Configure the API base with `NEXT_PUBLIC_API_URL` (default
+`http://localhost:8000`). Local workflow: run uvicorn and `npm run dev`, then
+open `http://localhost:3000`.
 
 ## What this repository is not
 
