@@ -29,12 +29,11 @@ class ExtractedSkill:
 
 @dataclass(frozen=True)
 class MatchResult:
-    """Explainable baseline relevance result for one resume and one job.
+    """Explainable relevance result for one resume and one job.
 
     All numeric scores use a 0–100 scale. ``overall_score`` is a **relevance
-    score** from the matcher that produced the result (lexical baseline or
-    semantic similarity), not a calibrated probability that someone should
-    be hired.
+    score** from the matcher that produced the result (lexical, semantic, or
+    hybrid), not a calibrated probability that someone should be hired.
     """
 
     overall_score: float
@@ -46,11 +45,22 @@ class MatchResult:
     job_skills: tuple[str, ...]
     evidence: tuple[str, ...] = ()
     semantic_similarity: float = 0.0
+    weak_or_negated_skills: tuple[str, ...] = ()
 
     @property
     def score(self) -> float:
         """Alias of ``overall_score`` for the ``Matcher`` protocol."""
         return self.overall_score
+
+    @property
+    def semantic_score(self) -> float:
+        """Alias of ``semantic_similarity`` for hybrid component reporting."""
+        return self.semantic_similarity
+
+    @property
+    def tfidf_score(self) -> float:
+        """Alias of ``tfidf_similarity`` for hybrid component reporting."""
+        return self.tfidf_similarity
 
     @property
     def skills_in_resume(self) -> tuple[str, ...]:

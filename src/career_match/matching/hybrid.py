@@ -103,6 +103,11 @@ class HybridMatcher:
             ),
             "Not a hiring probability.",
         )
+        weak_or_negated = tuple(
+            dict.fromkeys(
+                list(resume_profile.negated_skills) + list(resume_profile.weak_evidence_skills)
+            )
+        )
         return MatchResult(
             overall_score=_clip_score(overall, config.score_scale),
             tfidf_similarity=_clip_score(tfidf_score, config.score_scale),
@@ -113,4 +118,5 @@ class HybridMatcher:
             job_skills=job_skills,
             evidence=evidence,
             semantic_similarity=_clip_score(semantic_score, config.score_scale),
+            weak_or_negated_skills=weak_or_negated,
         )
