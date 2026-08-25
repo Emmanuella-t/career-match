@@ -14,16 +14,50 @@ Repository: [https://github.com/Emmanuella-t/career-match.git](https://github.co
 
 **Baseline Matcher v0.1** scores one resume against one job description
 using TF-IDF cosine similarity and catalog skill overlap. The result is a
-0–100 **baseline relevance score** with matched and missing skills.
+0–100 **baseline relevance score**, not a hiring probability and not a
+production model.
 
-That score is **not** a hiring probability and **not** a production model.
-The 16-pair development fixture is **not** a production benchmark. Future
-semantic models must beat this baseline on the same evaluation harness.
+The comparison target is **development benchmark v0.2** (56 synthetic
+pairs). Career Match currently compares two **standalone** matchers on
+that set:
 
-The legacy notebook trains a k-nearest-neighbors classifier that predicts a
-resume's *job category* (Data Science, Java Developer, HR, …). That is not
-the same problem as scoring a resume against a specific job description.
-Those category labels are not used as matching ground truth.
+| Matcher | Precision@1 | NDCG@3 | Pairwise |
+| --- | ---: | ---: | ---: |
+| Lexical Baseline v0.1 (TF-IDF + skill overlap) | 0.875 | 0.849 | 0.709 |
+| Semantic Matcher v0.1 (MiniLM cosine) | 1.000 | 0.900 | 0.865 |
+
+These are **development-benchmark** results, not production quality.
+Keyword stuffing and negation still fool both systems in different ways.
+There is **no hybrid** of the two scores yet.
+
+The older 16-pair v0.1 fixture is a sanity check only. Legacy notebook
+category labels are not matching ground truth.
+
+## ML experimentation
+
+Lexical and semantic matchers are measured independently on the same
+v0.2 labels (`scripts/compare_matchers.py`). Do not tune lexical weights
+against v0.2. Sentence embeddings require `pip install -e ".[semantic]"`
+or `.[dev]`. Importing `career_match` does not download MiniLM.
+
+## Evaluation benchmark
+
+| | v0.1 | v0.2 |
+| --- | --- | --- |
+| Role | sanity-check fixture | harder development benchmark |
+| File | `data/evaluation/dev_relevance_fixture.json` | `data/evaluation/dev_benchmark_v0_2.json` |
+| Size | 4 jobs × 4 resumes = 16 pairs | 8 jobs × 7 resumes = 56 pairs |
+| Use | smoke-test ranking | compare TF-IDF vs future models |
+
+```bash
+python scripts/evaluate_baseline.py
+python scripts/evaluate_benchmark_v0_2.py
+```
+
+Future sentence-embedding or hybrid rankers must be scored on v0.2 with
+the same development relevance labels. Do not tune lexical weights against
+v0.2 just to raise the score. Those labels are not independently validated
+ground truth.
 
 ## Repository layout
 
@@ -35,7 +69,7 @@ career-match/
 ├── docs/               Architecture notes and model card
 ├── reports/            Generated audit and baseline evaluation output
 ├── experiments/        Reserved for later matching experiments
-├── data/evaluation/    Development evaluation fixture (synthetic pairs)
+├── data/evaluation/    v0.1 sanity fixture and v0.2 development benchmark
 ├── legacy/             Original notebook, CSV, README, and cover image
 ├── frontend/           Early Career Match product prototype (built fresh here)
 └── .github/            CI
@@ -55,6 +89,8 @@ python -c "import career_match; print('Career Match import successful')"
 python scripts/audit_legacy_dataset.py
 python scripts/run_baseline_match.py --sample
 python scripts/evaluate_baseline.py
+python scripts/evaluate_benchmark_v0_2.py
+python scripts/compare_matchers.py
 ```
 
 Installation uses `pyproject.toml`. There is no root `requirements.txt`.

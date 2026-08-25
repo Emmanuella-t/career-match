@@ -15,3 +15,7 @@ class MatchingNotImplementedError(CareerMatchError):
     Prefer ``BaselineMatcher`` for the lexical v0.1 baseline. That baseline is
     still not a production hiring model.
     """
+
+
+class BenchmarkValidationError(CareerMatchError):
+    """Raised when a development benchmark file fails structural checks."""

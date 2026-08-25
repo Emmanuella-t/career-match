@@ -1,0 +1,874 @@
+{
+  "name": "career-match-dev-benchmark-v0.2",
+  "kind": "development evaluation benchmark",
+  "version": "0.2",
+  "disclaimer": "Synthetic resume/job pairs constructed for controlled development evaluation. Not real candidate data. Not production hiring labels. Relevance grades are manually specified synthetic relevance judgments (development targets), not independently validated ground truth. No independent annotator agreement. Intended for model comparison and error analysis. Legacy CSV category labels are not used.",
+  "provenance": {
+    "synthetic": true,
+    "constructed_for": "controlled development evaluation",
+    "real_candidate_data": false,
+    "production_hiring_labels": false,
+    "independent_annotator_agreement": false,
+    "intended_use": "model comparison and error analysis",
+    "label_type": "manually specified synthetic relevance judgments",
+    "review_status": "awaiting/available for manual review"
+  },
+  "relevant_threshold": 2,
+  "comparison_note": "v0.1 (career-match-dev-eval-v0.1) is a 16-pair sanity-check fixture. v0.2 is the harder development benchmark for comparing TF-IDF, future sentence embeddings, and future hybrid rankers. Neither is a production benchmark.",
+  "relevance_scale": {
+    "3": "strong match \u2014 right role family, required work and seniority largely present",
+    "2": "moderate match \u2014 related role or partial skills; plausible interview with gaps",
+    "1": "weak match \u2014 overlapping tools or adjacent family, wrong core responsibilities or seniority",
+    "0": "mismatch \u2014 different occupation; includes keyword-stuffing and unrelated stacks"
+  },
+  "jobs": [
+    {
+      "job_id": "job-mle",
+      "title": "Machine Learning Engineer",
+      "family": "machine-learning",
+      "min_years_experience": 4,
+      "required_skills": [
+        "Python",
+        "PyTorch",
+        "TensorFlow",
+        "Deep Learning",
+        "NLP",
+        "Docker",
+        "AWS",
+        "Git",
+        "Linux"
+      ],
+      "preferred_skills": [
+        "Kubernetes",
+        "scikit-learn"
+      ],
+      "description": "We need a Machine Learning Engineer with 4+ years to train and ship Deep Learning models. The role uses Python, PyTorch, TensorFlow, and NLP in production, with Docker packaging and AWS deployment. Git and Linux are expected. Kubernetes is preferred. This is a modeling and model-serving role, not a dashboard-analyst seat and not a generic REST API backend role."
+    },
+    {
+      "job_id": "job-ds",
+      "title": "Data Scientist",
+      "family": "data-science",
+      "min_years_experience": 3,
+      "required_skills": [
+        "Python",
+        "pandas",
+        "NumPy",
+        "SQL",
+        "scikit-learn",
+        "Git"
+      ],
+      "preferred_skills": [
+        "Machine Learning"
+      ],
+      "description": "Data Scientist for product experimentation. You will analyze funnels with Python, pandas, NumPy, SQL, and scikit-learn, write reproducible Git workflows, and explain results. We are not hiring a Deep Learning researcher and we are not hiring someone whose core work is REST APIs or frontend component development. Three or more years of applied analysis is expected."
+    },
+    {
+      "job_id": "job-da",
+      "title": "Data Analyst",
+      "family": "analytics",
+      "min_years_experience": 2,
+      "required_skills": [
+        "SQL",
+        "Python",
+        "Git"
+      ],
+      "preferred_skills": [
+        "pandas"
+      ],
+      "description": "Data Analyst for weekly business reporting. The work is SQL extracts, dashboard maintenance, and enough Python to clean spreadsheets. We do not need Deep Learning, model deployment, Kubernetes, or React. Typical fit is 2\u20133 years of reporting, not a research scientist track."
+    },
+    {
+      "job_id": "job-backend",
+      "title": "Backend Engineer",
+      "family": "backend",
+      "min_years_experience": 4,
+      "required_skills": [
+        "Python",
+        "FastAPI",
+        "Django",
+        "REST APIs",
+        "SQL",
+        "Docker",
+        "AWS",
+        "Linux",
+        "Git"
+      ],
+      "preferred_skills": [
+        "PostgreSQL"
+      ],
+      "description": "Backend Engineer with 4+ years shipping REST APIs in Python using FastAPI or Django, SQL, Docker, AWS, Linux, and Git. You will own service reliability and data access, not model training and not frontend component development."
+    },
+    {
+      "job_id": "job-frontend",
+      "title": "Frontend Engineer",
+      "family": "frontend",
+      "min_years_experience": 3,
+      "required_skills": [
+        "TypeScript",
+        "React",
+        "Next.js",
+        "HTML",
+        "CSS",
+        "JavaScript",
+        "Git"
+      ],
+      "preferred_skills": [],
+      "description": "Frontend Engineer for a TypeScript React and Next.js product. HTML, CSS, JavaScript, and Git are required. Three or more years of UI work is expected. This is not a Python backend role and not a machine learning role."
+    },
+    {
+      "job_id": "job-fullstack",
+      "title": "Full-Stack Engineer",
+      "family": "full-stack",
+      "min_years_experience": 3,
+      "required_skills": [
+        "React",
+        "TypeScript",
+        "Python",
+        "REST APIs",
+        "SQL",
+        "Git"
+      ],
+      "preferred_skills": [
+        "Next.js",
+        "Docker"
+      ],
+      "description": "Full-Stack Engineer to deliver React user interfaces and Python REST APIs in the same team. TypeScript, SQL, and Git are required. You should be comfortable across frontend component development and backend services. Three or more years. Not an MLOps or research ML seat."
+    },
+    {
+      "job_id": "job-mlops",
+      "title": "MLOps Engineer",
+      "family": "mlops",
+      "min_years_experience": 4,
+      "required_skills": [
+        "Python",
+        "Docker",
+        "Kubernetes",
+        "AWS",
+        "Git",
+        "Linux"
+      ],
+      "preferred_skills": [
+        "Terraform"
+      ],
+      "description": "MLOps Engineer with 4+ years to own model deployment and serving ML models on cloud infrastructure. The stack is Python automation, Docker, Kubernetes, AWS, Git, and Linux. You will productionize other people's training jobs. This is not a research scientist role and not a frontend role."
+    },
+    {
+      "job_id": "job-de",
+      "title": "Data Engineer",
+      "family": "data-engineering",
+      "min_years_experience": 3,
+      "required_skills": [
+        "Python",
+        "SQL",
+        "Docker",
+        "AWS",
+        "Git"
+      ],
+      "preferred_skills": [
+        "Spark",
+        "Airflow",
+        "PostgreSQL"
+      ],
+      "description": "Data Engineer to build batch pipelines into relational warehouses. Python, SQL, PostgreSQL, Spark, Airflow, Docker, and AWS are in daily use. Git required. Three or more years. We need reliable pipelines, not dashboard storytelling and not neural-network research."
+    }
+  ],
+  "resumes": [
+    {
+      "resume_id": "r-mle-prod",
+      "years_experience": 5,
+      "profile_summary": "Machine Learning Engineer who trains production Deep Learning systems.",
+      "experience_text": "Five years training and shipping NLP models in Python with PyTorch and TensorFlow. Packaged training jobs in Docker, deployed to AWS, and used Git and Linux daily. Some Kubernetes for batch inference. Not a product analyst and not a React developer.",
+      "skills_text": "Python, PyTorch, TensorFlow, Deep Learning, NLP, Docker, AWS, Git, Linux, Kubernetes, scikit-learn"
+    },
+    {
+      "resume_id": "r-mle-synonym",
+      "years_experience": 5,
+      "profile_summary": "Applied modeling specialist focused on neural systems and launch of trained systems.",
+      "experience_text": "Five years building neural networks for text understanding and running model deployment for those systems. Comfortable with serving ML models, containerized training jobs, and cloud infrastructure. Uses source control on UNIX workstations. Avoids naming vendor products in this summary.",
+      "skills_text": "neural networks, model deployment, serving ML models, cloud infrastructure, containers, unix, source control"
+    },
+    {
+      "resume_id": "r-ai-apps",
+      "years_experience": 3,
+      "profile_summary": "AI Engineer building LLM application features on top of hosted models.",
+      "experience_text": "Three years integrating hosted language models into Python services. Light fine-tuning experiments, mostly prompt workflows. Some Docker for demos. Have not trained large Deep Learning systems from scratch and have not owned cloud infrastructure for model serving.",
+      "skills_text": "Python, Git, Docker, NLP demos, prompt workflows"
+    },
+    {
+      "resume_id": "r-mle-negation",
+      "years_experience": 4,
+      "profile_summary": "Modeler who studied Deep Learning tools but stayed in notebooks.",
+      "experience_text": "Four years of research-style PyTorch and TensorFlow notebooks for NLP. No production Docker experience. Have not deployed models to cloud infrastructure. Limited exposure to Kubernetes. Git is used for papers, not services.",
+      "skills_text": "Python, PyTorch, TensorFlow, NLP, Git, Docker, Kubernetes, AWS"
+    },
+    {
+      "resume_id": "r-mle-intern",
+      "years_experience": 0.5,
+      "profile_summary": "Intern who completed university Deep Learning coursework.",
+      "experience_text": "Six-month internship reproducing a scikit-learn classifier and a small PyTorch tutorial. Coursework only. No production AWS, no Docker in anger, no four-year track record.",
+      "skills_text": "Python, PyTorch, scikit-learn, Git"
+    },
+    {
+      "resume_id": "r-mle-stuffing",
+      "years_experience": 6,
+      "profile_summary": "Technologist listing every popular tool on a CV.",
+      "experience_text": "Claims six years. Resume body repeats Python PyTorch TensorFlow NLP Docker AWS Kubernetes Git Linux Machine Learning Deep Learning REST APIs SQL React without describing a shipped model, a service, or a dashboard. No responsibilities, no outcomes.",
+      "skills_text": "Python, Java, JavaScript, TypeScript, SQL, C++, C#, React, Next.js, FastAPI, Flask, Django, PyTorch, TensorFlow, scikit-learn, pandas, NumPy, AWS, Azure, GCP, Docker, Kubernetes, Git, Linux, Machine Learning, Deep Learning, NLP, Computer Vision, REST APIs, HTML, CSS"
+    },
+    {
+      "resume_id": "r-ds-prod",
+      "years_experience": 4,
+      "profile_summary": "Data Scientist running product experiments.",
+      "experience_text": "Four years designing A/B tests with Python, pandas, NumPy, SQL, and scikit-learn. Shares notebooks through Git. Occasional Machine Learning classifiers. Does not train Deep Learning systems and does not ship REST APIs.",
+      "skills_text": "Python, pandas, NumPy, SQL, scikit-learn, Git, Machine Learning"
+    },
+    {
+      "resume_id": "r-ds-synonym",
+      "years_experience": 4,
+      "profile_summary": "Experiment analyst using statistical modeling and relational databases.",
+      "experience_text": "Four years of statistical modeling on product funnels. Works in relational databases and tabular analysis libraries. Writes reproducible studies in source control. Does not mention vendor ML libraries by name.",
+      "skills_text": "statistical modeling, relational databases, tabular analysis, reproducible studies"
+    },
+    {
+      "resume_id": "r-ds-partial",
+      "years_experience": 3,
+      "profile_summary": "Analyst-developer comfortable in Python data wrangling.",
+      "experience_text": "Three years of Python, pandas, and SQL extracts for internal reporting. No scikit-learn experimentation practice and no Deep Learning.",
+      "skills_text": "Python, pandas, SQL, Git"
+    },
+    {
+      "resume_id": "r-da-prod",
+      "years_experience": 3,
+      "profile_summary": "Data Analyst owning weekly KPI dashboards.",
+      "experience_text": "Three years writing SQL for business reporting, maintaining dashboards, and using light Python to clean CSV files. Git for dashboard configs. No model training, no REST APIs, no React.",
+      "skills_text": "SQL, Python, Git, dashboards, spreadsheets"
+    },
+    {
+      "resume_id": "r-da-synonym",
+      "years_experience": 2,
+      "profile_summary": "Reporting specialist focused on business reporting.",
+      "experience_text": "Two years of business reporting from relational databases and spreadsheet models. Builds stakeholder-facing charts. Does not list SQL or Python as named skills.",
+      "skills_text": "business reporting, relational databases, spreadsheets, charts"
+    },
+    {
+      "resume_id": "r-backend-prod",
+      "years_experience": 5,
+      "profile_summary": "Backend Engineer shipping REST APIs.",
+      "experience_text": "Five years building REST APIs with Python, FastAPI, Django, and SQL. Services run in Docker on AWS Linux hosts. Git-based reviews. No model training and no React product work.",
+      "skills_text": "Python, FastAPI, Django, REST APIs, SQL, Docker, AWS, Linux, Git"
+    },
+    {
+      "resume_id": "r-backend-synonym",
+      "years_experience": 5,
+      "profile_summary": "Service engineer for HTTP backends.",
+      "experience_text": "Five years delivering REST services against relational databases on cloud infrastructure. Writes HTTP handlers, auth, and persistence. Uses containers and UNIX hosts. Does not name FastAPI, Django, SQL, or AWS in this resume.",
+      "skills_text": "REST services, relational databases, cloud infrastructure, containers, unix, HTTP"
+    },
+    {
+      "resume_id": "r-backend-negation",
+      "years_experience": 4,
+      "profile_summary": "Python API developer without production containers.",
+      "experience_text": "Four years of FastAPI and Django REST APIs with SQL and Git. No production Docker experience. Have not deployed services to cloud infrastructure. Limited exposure to Kubernetes. Local Linux only.",
+      "skills_text": "Python, FastAPI, Django, REST APIs, SQL, Git, Linux, Docker, Kubernetes, AWS"
+    },
+    {
+      "resume_id": "r-backend-intern",
+      "years_experience": 1,
+      "profile_summary": "Junior developer finishing a backend internship.",
+      "experience_text": "One year internship writing small Flask endpoints and SQL queries. Some Git. No AWS ownership, no Docker in production, no four-year service track record.",
+      "skills_text": "Python, Flask, SQL, Git"
+    },
+    {
+      "resume_id": "r-de-prod",
+      "years_experience": 4,
+      "profile_summary": "Data Engineer for warehouse pipelines.",
+      "experience_text": "Four years building Python and SQL pipelines into PostgreSQL warehouses with Spark and Airflow. Dockerized jobs on AWS. Git required. Not a dashboard analyst and not an NLP researcher.",
+      "skills_text": "Python, SQL, PostgreSQL, Spark, Airflow, Docker, AWS, Git"
+    },
+    {
+      "resume_id": "r-de-synonym",
+      "years_experience": 4,
+      "profile_summary": "Pipeline engineer for analytical stores.",
+      "experience_text": "Four years operating data pipelines into relational warehouses on cloud infrastructure. Orchestrates batch jobs and containerized workers. Does not name Spark, Airflow, PostgreSQL, or AWS.",
+      "skills_text": "data pipelines, relational warehouses, cloud infrastructure, batch jobs, containers"
+    },
+    {
+      "resume_id": "r-fe-prod",
+      "years_experience": 4,
+      "profile_summary": "Frontend Engineer delivering TypeScript React products.",
+      "experience_text": "Four years of TypeScript React and Next.js features with HTML, CSS, JavaScript, and Git. No Python services and no model training.",
+      "skills_text": "TypeScript, React, Next.js, HTML, CSS, JavaScript, Git"
+    },
+    {
+      "resume_id": "r-fe-synonym",
+      "years_experience": 4,
+      "profile_summary": "Interface engineer focused on component work.",
+      "experience_text": "Four years of frontend component development for customer-facing apps. Builds design-system widgets, accessibility, and client routing. Does not name React, Next.js, or TypeScript.",
+      "skills_text": "frontend component development, design systems, accessibility, client routing"
+    },
+    {
+      "resume_id": "r-fe-partial",
+      "years_experience": 3,
+      "profile_summary": "JavaScript React developer without TypeScript or Next.js.",
+      "experience_text": "Three years of JavaScript React with HTML and CSS. Little TypeScript and no Next.js. Git for pull requests.",
+      "skills_text": "JavaScript, React, HTML, CSS, Git"
+    },
+    {
+      "resume_id": "r-fs-prod",
+      "years_experience": 4,
+      "profile_summary": "Full-Stack Engineer spanning React and Python APIs.",
+      "experience_text": "Four years delivering TypeScript React screens and Python REST APIs with SQL and Git. Some Docker. Not an ML trainer.",
+      "skills_text": "TypeScript, React, Python, REST APIs, SQL, Git, Docker"
+    },
+    {
+      "resume_id": "r-mlops-prod",
+      "years_experience": 5,
+      "profile_summary": "MLOps Engineer serving other teams' models.",
+      "experience_text": "Five years on model deployment: Docker, Kubernetes, AWS, Git, Linux, and Python automation for serving ML models. Rarely trains networks. Partners with research but owns production serving.",
+      "skills_text": "Python, Docker, Kubernetes, AWS, Git, Linux, model deployment"
+    },
+    {
+      "resume_id": "r-mlops-negation",
+      "years_experience": 4,
+      "profile_summary": "Platform-minded Python engineer new to cluster operations.",
+      "experience_text": "Four years writing Python deploy scripts and Dockerfiles on AWS. Limited exposure to Kubernetes. Have not owned serving ML models in production. Git and Linux are daily.",
+      "skills_text": "Python, Docker, AWS, Git, Linux, Kubernetes"
+    },
+    {
+      "resume_id": "r-systems-cpp",
+      "years_experience": 6,
+      "profile_summary": "Systems programmer in C++ on Linux clusters.",
+      "experience_text": "Six years of C++ and Kubernetes networking internals on Linux. No Python analytics, no REST APIs, no React, no SQL warehouses, no model training.",
+      "skills_text": "C++, Linux, Kubernetes, Git"
+    }
+  ],
+  "judgments": [
+    {
+      "job_id": "job-mle",
+      "resume_id": "r-mle-prod",
+      "grade": 3,
+      "rationale": "3 \u2014 five years shipping Deep Learning, NLP, Docker, and AWS; matches the required modeling role.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "job-mle",
+      "resume_id": "r-mle-synonym",
+      "grade": 3,
+      "rationale": "3 \u2014 same responsibility profile (neural training and serving ML models on cloud infrastructure) stated with synonyms rather than PyTorch/AWS tokens.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "job-mle",
+      "resume_id": "r-ai-apps",
+      "grade": 2,
+      "rationale": "2 \u2014 related AI Engineer profile with Python and some NLP, but hosted-LLM apps rather than training/shipping Deep Learning.",
+      "case_tags": [
+        "related_role",
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "job-mle",
+      "resume_id": "r-mle-negation",
+      "grade": 1,
+      "rationale": "1 \u2014 names PyTorch and TensorFlow but explicitly has no production Docker and has not deployed models to cloud infrastructure.",
+      "case_tags": [
+        "negation",
+        "experience_mismatch"
+      ]
+    },
+    {
+      "job_id": "job-mle",
+      "resume_id": "r-mle-intern",
+      "grade": 1,
+      "rationale": "1 \u2014 intern-level coursework for a role asking 4+ years of production modeling.",
+      "case_tags": [
+        "experience_mismatch"
+      ]
+    },
+    {
+      "job_id": "job-mle",
+      "resume_id": "r-backend-prod",
+      "grade": 1,
+      "rationale": "1 \u2014 strong Python/Docker/AWS overlap but a backend REST API profile, not model training.",
+      "case_tags": [
+        "related_role",
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "job-mle",
+      "resume_id": "r-mle-stuffing",
+      "grade": 0,
+      "rationale": "0 \u2014 keyword stuffing of the whole catalog without evidence of modeling work; hard negative.",
+      "case_tags": [
+        "hard_negative",
+        "keyword_stuffing"
+      ]
+    },
+    {
+      "job_id": "job-ds",
+      "resume_id": "r-ds-prod",
+      "grade": 3,
+      "rationale": "3 \u2014 four years of Python/pandas/SQL/scikit-learn experimentation, which is the job.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "job-ds",
+      "resume_id": "r-ds-synonym",
+      "grade": 2,
+      "rationale": "2 \u2014 role fit via statistical modeling and relational databases, but no named pandas/SQL/scikit-learn.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "job-ds",
+      "resume_id": "r-ds-partial",
+      "grade": 2,
+      "rationale": "2 \u2014 correct general data role with Python/SQL/pandas but missing scikit-learn experimentation.",
+      "case_tags": [
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "job-ds",
+      "resume_id": "r-mle-prod",
+      "grade": 2,
+      "rationale": "2 \u2014 related ML Engineer who can program and model, but core work is Deep Learning serving rather than product experiments.",
+      "case_tags": [
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "job-ds",
+      "resume_id": "r-da-prod",
+      "grade": 1,
+      "rationale": "1 \u2014 closely related Data Analyst; reporting/SQL without experimental design or scikit-learn.",
+      "case_tags": [
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "job-ds",
+      "resume_id": "r-backend-prod",
+      "grade": 1,
+      "rationale": "1 \u2014 Python and SQL for services, not analysis or experimentation.",
+      "case_tags": [
+        "related_role",
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "job-ds",
+      "resume_id": "r-systems-cpp",
+      "grade": 0,
+      "rationale": "0 \u2014 C++/Kubernetes systems work with no analytics stack; mismatch.",
+      "case_tags": [
+        "hard_negative",
+        "irrelevant_shared_terms"
+      ]
+    },
+    {
+      "job_id": "job-da",
+      "resume_id": "r-da-prod",
+      "grade": 3,
+      "rationale": "3 \u2014 three years of SQL dashboards and light Python reporting, matching the analyst seat.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "job-da",
+      "resume_id": "r-da-synonym",
+      "grade": 2,
+      "rationale": "2 \u2014 business reporting and relational databases without naming SQL/Python.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "job-da",
+      "resume_id": "r-ds-partial",
+      "grade": 2,
+      "rationale": "2 \u2014 Python/SQL/pandas wrangling can cover analyst work but is heavier on engineering extracts than dashboards.",
+      "case_tags": [
+        "partial_skills",
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "job-da",
+      "resume_id": "r-ds-prod",
+      "grade": 2,
+      "rationale": "2 \u2014 Data Scientist overqualified for reporting; can do the work but the profile is experimental ML, not weekly KPIs.",
+      "case_tags": [
+        "related_role",
+        "experience_mismatch"
+      ]
+    },
+    {
+      "job_id": "job-da",
+      "resume_id": "r-backend-prod",
+      "grade": 1,
+      "rationale": "1 \u2014 SQL appears in APIs, not business reporting.",
+      "case_tags": [
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "job-da",
+      "resume_id": "r-mle-intern",
+      "grade": 1,
+      "rationale": "1 \u2014 intern Python coursework, not reporting experience.",
+      "case_tags": [
+        "experience_mismatch",
+        "weak_overlap"
+      ]
+    },
+    {
+      "job_id": "job-da",
+      "resume_id": "r-fe-prod",
+      "grade": 0,
+      "rationale": "0 \u2014 frontend React profile with no reporting work; mismatch.",
+      "case_tags": [
+        "hard_negative"
+      ]
+    },
+    {
+      "job_id": "job-backend",
+      "resume_id": "r-backend-prod",
+      "grade": 3,
+      "rationale": "3 \u2014 five years of FastAPI/Django REST APIs, SQL, Docker, and AWS.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "job-backend",
+      "resume_id": "r-backend-synonym",
+      "grade": 2,
+      "rationale": "2 \u2014 REST services, relational databases, and cloud infrastructure describe the role without FastAPI/SQL/AWS tokens.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "job-backend",
+      "resume_id": "r-de-prod",
+      "grade": 1,
+      "rationale": "1 \u2014 Data Engineer vs backend: Python/SQL/Docker overlap, pipeline responsibilities instead of REST APIs.",
+      "case_tags": [
+        "related_role",
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "job-backend",
+      "resume_id": "r-mle-prod",
+      "grade": 1,
+      "rationale": "1 \u2014 Python backend-adjacent stack (Docker/AWS) but ML training responsibilities, not API product work.",
+      "case_tags": [
+        "related_role",
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "job-backend",
+      "resume_id": "r-backend-negation",
+      "grade": 1,
+      "rationale": "1 \u2014 FastAPI/Django present but no production Docker and has not deployed to cloud infrastructure.",
+      "case_tags": [
+        "negation"
+      ]
+    },
+    {
+      "job_id": "job-backend",
+      "resume_id": "r-backend-intern",
+      "grade": 1,
+      "rationale": "1 \u2014 intern-level Flask/SQL for a role asking 4+ years.",
+      "case_tags": [
+        "experience_mismatch"
+      ]
+    },
+    {
+      "job_id": "job-backend",
+      "resume_id": "r-fe-prod",
+      "grade": 0,
+      "rationale": "0 \u2014 frontend engineer; no Python services. Hard negative only via shared Git.",
+      "case_tags": [
+        "hard_negative"
+      ]
+    },
+    {
+      "job_id": "job-frontend",
+      "resume_id": "r-fe-prod",
+      "grade": 3,
+      "rationale": "3 \u2014 TypeScript React Next.js HTML CSS JavaScript Git at 4 years.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "job-frontend",
+      "resume_id": "r-fe-synonym",
+      "grade": 2,
+      "rationale": "2 \u2014 frontend component development without naming React/Next.js/TypeScript.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "job-frontend",
+      "resume_id": "r-fe-partial",
+      "grade": 2,
+      "rationale": "2 \u2014 correct UI role missing TypeScript and Next.js.",
+      "case_tags": [
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "job-frontend",
+      "resume_id": "r-fs-prod",
+      "grade": 2,
+      "rationale": "2 \u2014 full-stack with real React, but half the work is Python APIs the JD does not want as core.",
+      "case_tags": [
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "job-frontend",
+      "resume_id": "r-backend-intern",
+      "grade": 1,
+      "rationale": "1 \u2014 junior backend intern; may have touched HTML, not a frontend product engineer.",
+      "case_tags": [
+        "experience_mismatch",
+        "weak_overlap"
+      ]
+    },
+    {
+      "job_id": "job-frontend",
+      "resume_id": "r-backend-prod",
+      "grade": 0,
+      "rationale": "0 \u2014 Python API engineer with no UI framework work; shared Git only.",
+      "case_tags": [
+        "hard_negative",
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "job-frontend",
+      "resume_id": "r-systems-cpp",
+      "grade": 0,
+      "rationale": "0 \u2014 C++/Kubernetes; no JavaScript. Shared Linux/Git should not dominate.",
+      "case_tags": [
+        "hard_negative",
+        "irrelevant_shared_terms"
+      ]
+    },
+    {
+      "job_id": "job-fullstack",
+      "resume_id": "r-fs-prod",
+      "grade": 3,
+      "rationale": "3 \u2014 React plus Python REST APIs and SQL, which is the job.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "job-fullstack",
+      "resume_id": "r-fe-prod",
+      "grade": 2,
+      "rationale": "2 \u2014 strong frontend, missing Python REST APIs.",
+      "case_tags": [
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "job-fullstack",
+      "resume_id": "r-backend-prod",
+      "grade": 2,
+      "rationale": "2 \u2014 strong Python APIs, missing React/TypeScript UI.",
+      "case_tags": [
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "job-fullstack",
+      "resume_id": "r-fe-partial",
+      "grade": 2,
+      "rationale": "2 \u2014 React/HTML/CSS without TypeScript depth and without backend.",
+      "case_tags": [
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "job-fullstack",
+      "resume_id": "r-backend-intern",
+      "grade": 1,
+      "rationale": "1 \u2014 intern backend only; not full-stack seniority.",
+      "case_tags": [
+        "experience_mismatch"
+      ]
+    },
+    {
+      "job_id": "job-fullstack",
+      "resume_id": "r-mle-prod",
+      "grade": 1,
+      "rationale": "1 \u2014 Python present, but ML training rather than product UI+API delivery.",
+      "case_tags": [
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "job-fullstack",
+      "resume_id": "r-da-prod",
+      "grade": 0,
+      "rationale": "0 \u2014 analyst reporting, not full-stack product engineering.",
+      "case_tags": [
+        "hard_negative"
+      ]
+    },
+    {
+      "job_id": "job-mlops",
+      "resume_id": "r-mlops-prod",
+      "grade": 3,
+      "rationale": "3 \u2014 five years of Docker/Kubernetes/AWS serving ML models.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "job-mlops",
+      "resume_id": "r-mle-prod",
+      "grade": 2,
+      "rationale": "2 \u2014 ML Engineer with Docker/AWS and some Kubernetes, but core identity is training not MLOps.",
+      "case_tags": [
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "job-mlops",
+      "resume_id": "r-backend-prod",
+      "grade": 2,
+      "rationale": "2 \u2014 Docker/AWS/Linux production skills without model-serving ownership.",
+      "case_tags": [
+        "skill_overlap_without_role_fit",
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "job-mlops",
+      "resume_id": "r-de-prod",
+      "grade": 2,
+      "rationale": "2 \u2014 pipeline infra overlap (Docker/AWS) without serving ML models.",
+      "case_tags": [
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "job-mlops",
+      "resume_id": "r-mlops-negation",
+      "grade": 1,
+      "rationale": "1 \u2014 Python/Docker/AWS but limited Kubernetes and has not owned serving ML models.",
+      "case_tags": [
+        "negation",
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "job-mlops",
+      "resume_id": "r-mle-negation",
+      "grade": 1,
+      "rationale": "1 \u2014 names Docker/Kubernetes/AWS while stating no production Docker and no cloud deploy.",
+      "case_tags": [
+        "negation"
+      ]
+    },
+    {
+      "job_id": "job-mlops",
+      "resume_id": "r-fe-prod",
+      "grade": 0,
+      "rationale": "0 \u2014 frontend profile; mismatch.",
+      "case_tags": [
+        "hard_negative"
+      ]
+    },
+    {
+      "job_id": "job-de",
+      "resume_id": "r-de-prod",
+      "grade": 3,
+      "rationale": "3 \u2014 Python/SQL/PostgreSQL/Spark/Airflow/Docker/AWS pipelines.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "job-de",
+      "resume_id": "r-de-synonym",
+      "grade": 2,
+      "rationale": "2 \u2014 data pipelines and relational warehouses on cloud infrastructure without Spark/SQL/AWS tokens.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "job-de",
+      "resume_id": "r-backend-prod",
+      "grade": 2,
+      "rationale": "2 \u2014 Python/SQL/Docker/AWS services, not warehouse pipelines; related but incomplete.",
+      "case_tags": [
+        "related_role",
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "job-de",
+      "resume_id": "r-ds-prod",
+      "grade": 1,
+      "rationale": "1 \u2014 analysis/experimentation, not pipeline engineering.",
+      "case_tags": [
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "job-de",
+      "resume_id": "r-mle-prod",
+      "grade": 1,
+      "rationale": "1 \u2014 Python/Docker/AWS for training jobs, not warehouse orchestration.",
+      "case_tags": [
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "job-de",
+      "resume_id": "r-backend-intern",
+      "grade": 1,
+      "rationale": "1 \u2014 intern SQL/Python, not 3+ years of pipelines.",
+      "case_tags": [
+        "experience_mismatch"
+      ]
+    },
+    {
+      "job_id": "job-de",
+      "resume_id": "r-fe-prod",
+      "grade": 0,
+      "rationale": "0 \u2014 frontend engineer; mismatch.",
+      "case_tags": [
+        "hard_negative"
+      ]
+    }
+  ]
+}

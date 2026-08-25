@@ -17,8 +17,8 @@ product UI, and so a future serving API can sit between them.
                      │ package import
 ┌────────────────────┴────────────────────────┐
 │  ML  —  `src/career_match/`                 │
-│  Data loading, parsing, extraction,         │
-│  Baseline Matcher v0.1, evaluation harness. │
+│  Lexical baseline and standalone semantic   │
+│  matcher, plus evaluation harness.          │
 └─────────────────────────────────────────────┘
 ```
 
@@ -29,7 +29,7 @@ product UI, and so a future serving API can sit between them.
 | `career_match.data` | Load, validate, and audit the legacy CSV | Implemented |
 | `career_match.parsing` | Deterministic text normalization | Implemented |
 | `career_match.extraction` | Lexicon skill spans (32 canonical skills) | Implemented (not a model) |
-| `career_match.matching` | Matcher protocol + **Baseline Matcher v0.1** | Implemented (lexical baseline) |
+| `career_match.matching` | Matcher protocol + lexical baseline + **standalone** semantic matcher | Implemented (no hybrid) |
 | `career_match.evaluation` | Classification helpers + ranking metrics + fixture harness | Implemented |
 
 `BaselineMatcher` is the first matching-layer implementation: TF-IDF cosine
@@ -40,28 +40,36 @@ and missing skills. It is not a calibrated hiring probability.
 `UnimplementedMatcher.match()` still raises `MatchingNotImplementedError`
 for callers that must not silently pick up an unmeasured heuristic.
 
-## Matching layer (v0.1)
+## Matching layer
+
+Two **independent** scorers. There is **no hybrid** of TF-IDF, skill
+overlap, and embeddings in this repository.
 
 ```
-resume text ─┐
-             ├─ tokenize (keep C++, C#, .NET) ─ TF-IDF cosine ─┐
-job text ────┤                                                 ├─ hybrid score
-             └─ skill catalog extract ─ job-skill coverage ────┘
+resume ─┐
+        ├─ TF-IDF cosine + catalog skill overlap → Baseline Matcher v0.1
+job ────┤
+        └─ MiniLM embedding cosine              → Semantic Matcher v0.1
 ```
 
-- Configuration: `career_match.matching.config` (`TFIDF_WEIGHT=0.55`,
-  `SKILL_OVERLAP_WEIGHT=0.45`).
-- Developer CLI: `python scripts/run_baseline_match.py --sample`
-- Evaluation: `python scripts/evaluate_baseline.py`
+- Lexical config: `career_match.matching.config` (`TFIDF_WEIGHT=0.55`,
+  `SKILL_OVERLAP_WEIGHT=0.45`). Do not retune these to chase v0.2.
+- Semantic config: `career_match.matching.semantic_config`
+  (`sentence-transformers/all-MiniLM-L6-v2`).
+- Compare: `python scripts/compare_matchers.py`
+- Lexical-only eval: `python scripts/evaluate_benchmark_v0_2.py`
 
-Do not add embeddings, transformers, LLMs, RAG, or a serving API in this
-layer until a later model beats this baseline on the same fixture.
+Do not add LLMs, RAG, or a serving API in this layer.
 
 ## Data
 
 - **Raw source of truth:** `legacy/resume_dataset.csv` (preserved prototype).
-- **Development evaluation fixture:** `data/evaluation/dev_relevance_fixture.json`
-  (synthetic resume/job pairs; not a production benchmark).
+- **Development evaluation fixture (v0.1):** `data/evaluation/dev_relevance_fixture.json`
+  (16-pair sanity check; not a production benchmark).
+- **Development evaluation benchmark (v0.2):** `data/evaluation/dev_benchmark_v0_2.json`
+  (56-pair harder set for model comparison). Synthetic; constructed for
+  controlled development evaluation. Labels are benchmark-construction
+  development targets, not independently validated ground truth.
 - **Audit:** `python scripts/audit_legacy_dataset.py` writes
   `reports/legacy_dataset_audit.md`.
 
@@ -73,8 +81,9 @@ ground truth.
 
 `experiments/` remains reserved for notebooks. The first measured
 baseline lives in the matching package and is evaluated by
-`scripts/evaluate_baseline.py`, which writes
-`reports/baseline_evaluation.md`. Nothing in `experiments/` is production.
+`scripts/evaluate_benchmark_v0_2.py` (lexical v0.2) and
+`scripts/compare_matchers.py` (lexical vs semantic on v0.2). Nothing in
+`experiments/` is production.
 
 ## Product prototype
 
@@ -94,4 +103,6 @@ Serving is still a separate, unimplemented process.
 - Not an applicant-tracking system.
 - Not a production ranker.
 - Not a claim that KNN category accuracy equals hiring quality.
-- Not a claim that Baseline Matcher v0.1 is ready to rank real candidates.
+- Not a claim that Baseline Matcher v0.1 or Semantic Matcher v0.1 is ready
+  to rank real candidates.
+- Not a hybrid of TF-IDF and embeddings.

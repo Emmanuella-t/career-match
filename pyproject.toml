@@ -20,12 +20,17 @@ classifiers = [
 ]
 dependencies = [
     "scikit-learn>=1.4",
+    "numpy>=1.26",
 ]
 
 [project.optional-dependencies]
+semantic = [
+    "sentence-transformers>=3.0,<4",
+]
 dev = [
     "pytest>=8.0",
     "ruff>=0.6",
+    "sentence-transformers>=3.0,<4",
 ]
 
 [project.urls]
@@ -39,6 +44,9 @@ where = ["src"]
 testpaths = ["tests"]
 pythonpath = ["src", "."]
 addopts = "-q"
+markers = [
+    "semantic: loads sentence-transformers/all-MiniLM-L6-v2 (cached after first download)",
+]
 
 [tool.ruff]
 line-length = 100
