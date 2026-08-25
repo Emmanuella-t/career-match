@@ -33,6 +33,7 @@ export class MatchApiError extends Error {
 
 const DEFAULT_API_URL = "http://localhost:8000";
 
+/** API origin for the browser. Prefer NEXT_PUBLIC_API_URL at build time. */
 export function getApiBaseUrl(): string {
   return (process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_URL).replace(/\/$/, "");
 }

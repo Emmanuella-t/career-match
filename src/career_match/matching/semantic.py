@@ -8,6 +8,7 @@ does **not** load a transformer at import time.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from threading import Lock
 from typing import Protocol, runtime_checkable
 
 import numpy as np
@@ -72,11 +73,14 @@ class SentenceTransformerEncoder:
         self.device = device
         self.normalize_embeddings = normalize_embeddings
         self._model = model
+        self._load_lock = Lock()
 
     @property
     def model(self) -> object:
         if self._model is None:
-            self._model = _load_sentence_transformer(self.model_name, self.device)
+            with self._load_lock:
+                if self._model is None:
+                    self._model = _load_sentence_transformer(self.model_name, self.device)
         return self._model
 
     def encode(self, texts: Sequence[str]) -> np.ndarray:
@@ -127,15 +131,18 @@ class SemanticMatcher:
     ) -> None:
         self.config = config or SemanticConfig()
         self._encoder = encoder
+        self._encoder_lock = Lock()
 
     @property
     def encoder(self) -> EmbeddingEncoder:
         if self._encoder is None:
-            self._encoder = SentenceTransformerEncoder(
-                self.config.model_name,
-                device=self.config.device,
-                normalize_embeddings=self.config.normalize_embeddings,
-            )
+            with self._encoder_lock:
+                if self._encoder is None:
+                    self._encoder = SentenceTransformerEncoder(
+                        self.config.model_name,
+                        device=self.config.device,
+                        normalize_embeddings=self.config.normalize_embeddings,
+                    )
         return self._encoder
 
     def encode_texts(self, texts: Sequence[str]) -> np.ndarray:

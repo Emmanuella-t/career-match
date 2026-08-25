@@ -74,5 +74,12 @@ class HealthResponse(BaseModel):
     status: str = "ok"
 
 
+class ReadyResponse(BaseModel):
+    """Process readiness without forcing MiniLM download."""
+
+    status: str = "ready"
+    semantic_model_loaded: bool = False
+
+
 class ErrorResponse(BaseModel):
     detail: str

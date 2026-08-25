@@ -2,10 +2,12 @@
 
 Importing this module does not download MiniLM. Semantic/hybrid encoders
 load on first use of those matchers and are then reused for the process
-lifetime of ``MatcherService``.
+lifetime of ``MatcherService``. Lazy init is guarded for concurrent requests.
 """
 
 from __future__ import annotations
+
+import threading
 
 from career_match.api.schemas import MatchResponse
 from career_match.api.settings import SCORE_DISCLAIMER, SUPPORTED_MATCHERS
@@ -39,24 +41,39 @@ class MatcherService:
         self._lexical = lexical
         self._semantic = semantic
         self._hybrid = hybrid
+        self._lock = threading.Lock()
+
+    @property
+    def semantic_model_loaded(self) -> bool:
+        """True when a semantic matcher instance already exists (may still be idle)."""
+        return self._semantic is not None
 
     @property
     def lexical(self) -> BaselineMatcher:
         if self._lexical is None:
-            self._lexical = BaselineMatcher()
+            with self._lock:
+                if self._lexical is None:
+                    self._lexical = BaselineMatcher()
         return self._lexical
 
     @property
     def semantic(self) -> SemanticMatcher:
         if self._semantic is None:
-            self._semantic = SemanticMatcher()
+            with self._lock:
+                if self._semantic is None:
+                    self._semantic = SemanticMatcher()
         return self._semantic
 
     @property
     def hybrid(self) -> HybridMatcher:
         if self._hybrid is None:
-            # Share the semantic instance so MiniLM loads once per process.
-            self._hybrid = HybridMatcher(semantic_matcher=self.semantic)
+            with self._lock:
+                if self._hybrid is None:
+                    # Initialize semantic under the same lock (non-reentrant)
+                    # so MiniLM is shared once per process.
+                    if self._semantic is None:
+                        self._semantic = SemanticMatcher()
+                    self._hybrid = HybridMatcher(semantic_matcher=self._semantic)
         return self._hybrid
 
     def match(self, resume_text: str, job_description: str, matcher: str) -> MatchResponse:
