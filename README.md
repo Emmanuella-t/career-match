@@ -128,6 +128,30 @@ Default matcher is **semantic**. Optional body field `matcher` may be
 `semantic`, `hybrid`, or `lexical`. Importing the app does not download
 MiniLM; the encoder loads on first semantic/hybrid request.
 
+## Try Career Match locally
+
+Run both services:
+
+**Terminal 1 — backend**
+
+```bash
+python -m pip install -e ".[dev]"
+uvicorn career_match.api.app:app --reload --host 127.0.0.1 --port 8000
+```
+
+**Terminal 2 — frontend**
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) and use **Match** to paste a
+resume and job description. The UI calls FastAPI `POST /api/v1/match`
+(`NEXT_PUBLIC_API_URL`, default `http://localhost:8000`). API docs:
+`http://127.0.0.1:8000/docs`.
+
 ## Setup (frontend)
 
 Node.js 22+ and npm:
@@ -140,9 +164,7 @@ npm run build
 npm run dev
 ```
 
-The prototype runs at `http://127.0.0.1:43173`. It highlights lexicon overlaps
-by default. Optional API calls use `NEXT_PUBLIC_API_URL` (default
-`http://localhost:8000`) via `frontend/src/lib/api.ts`.
+The product UI runs at `http://localhost:3000` and talks to the matching API.
 
 ## Legacy prototype
 

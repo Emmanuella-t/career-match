@@ -9,15 +9,15 @@ import {
 const layers = [
   {
     title: "Product",
-    body: "This Next.js app. Recruiter-facing copy, empty/error states, and a lexicon overlap demo. No trained weights.",
+    body: "This Next.js app. Users paste a resume and job description, then review relevance results returned by the API.",
   },
   {
     title: "Serving",
-    body: "Not implemented. A future API will version models and keep the UI from importing Python directly.",
+    body: "FastAPI career_match.api. POST /api/v1/match scores text with semantic, hybrid, or lexical matchers.",
   },
   {
     title: "ML",
-    body: "src/career_match in the repo root. Dataset loading, parsing, extraction, matcher protocol, evaluation helpers.",
+    body: "src/career_match in the repo root. Matching, extraction, evaluation, and frozen benchmarks.",
   },
 ];
 
@@ -27,14 +27,13 @@ export default function ArchitecturePage() {
       <div className="max-w-3xl space-y-3">
         <h1 className="text-3xl font-semibold tracking-tight">Architecture</h1>
         <p className="text-muted-foreground">
-          Career Match keeps research, serving, and product in separate layers.
-          The ML package can change without a UI rewrite; the UI cannot silently
-          become the model.
+          Career Match keeps product, serving, and ML in separate layers. The UI
+          never imports model weights; it calls the HTTP matching service.
         </p>
       </div>
       <div className="grid gap-4 md:grid-cols-3">
         {layers.map((layer) => (
-          <Card key={layer.title}>
+          <Card key={layer.title} className="border-border/80 shadow-none">
             <CardHeader>
               <CardTitle>{layer.title}</CardTitle>
               <CardDescription>{layer.body}</CardDescription>
@@ -42,19 +41,19 @@ export default function ArchitecturePage() {
           </Card>
         ))}
       </div>
-      <Card>
+      <Card className="border-border/80 shadow-none">
         <CardHeader>
-          <CardTitle>Current ML status</CardTitle>
+          <CardTitle>End-to-end flow</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm leading-6 text-muted-foreground">
           <p>
-            No production matching model has been implemented. The next
-            milestone is a measurable resume-to-job baseline, with a frozen
-            split, before semantic embedding models.
+            Next.js UI → FastAPI <code>/api/v1/match</code> → selected matcher →
+            structured relevance and skill explainability → results UI.
           </p>
           <p>
-            Full write-up: docs/architecture.md and docs/model-card.md in the
-            repository root.
+            Default matcher is Semantic Matcher v0.1. Scores are relevance
+            signals, not hiring probabilities. Full write-up:
+            docs/architecture.md and docs/model-card.md.
           </p>
         </CardContent>
       </Card>

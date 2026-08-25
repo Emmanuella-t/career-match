@@ -8,31 +8,37 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export default function HomePage() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 sm:py-14">
       <section className="max-w-3xl space-y-4">
-        <p className="text-sm font-medium text-muted-foreground">
-          ML-first resume matching
+        <p className="font-[family-name:var(--font-support)] text-xs uppercase tracking-[0.16em] text-muted-foreground">
+          Explainable resume matching
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          Career Match scores a resume against a job with evidence a recruiter
-          can inspect.
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
+          Career Match
         </h1>
         <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-          This repository started as a Resume Screening notebook that classified
-          resumes into job families. The product direction is different: one
-          resume, one job description, an explainable match. That matcher is
-          not built yet.
+          Score a resume against a job description with clear skill evidence.
+          The product UI calls the FastAPI matching service and shows matched,
+          missing, and weak or negated skills—without treating the score as a
+          hiring decision.
         </p>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Link href="/match" className={buttonVariants()}>
-            Open the skill-overlap prototype
+          <Link
+            href="/match"
+            className={cn(
+              buttonVariants({ size: "lg" }),
+              "bg-action text-action-foreground hover:bg-action/90",
+            )}
+          >
+            Analyze a match
           </Link>
           <Link
             href="/architecture"
-            className={buttonVariants({ variant: "outline" })}
+            className={buttonVariants({ variant: "outline", size: "lg" })}
           >
             Read the architecture
           </Link>
@@ -40,42 +46,43 @@ export default function HomePage() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="border-border/80 shadow-none">
           <CardHeader>
             <CardTitle>ML package</CardTitle>
             <CardDescription>
-              Python modules for data, parsing, extraction, matching contracts,
-              and evaluation helpers.
+              Lexical, semantic, and hybrid matchers with development and holdout
+              benchmarks.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            Matching raises an explicit not-implemented error until a measured
-            baseline exists.
+            Scores are 0–100 relevance signals evaluated on synthetic fixtures,
+            not production hiring models.
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-border/80 shadow-none">
           <CardHeader>
-            <CardTitle>Legacy prototype</CardTitle>
+            <CardTitle>Matching API</CardTitle>
             <CardDescription>
-              The original notebook, 169-row CSV, and cover image live under
-              legacy/.
+              FastAPI exposes POST /api/v1/match with semantic as the default
+              matcher.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            Category classification is preserved as history, not as a hiring
-            score.
+            Run the backend locally, then use this UI to inspect real analysis
+            results.
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-border/80 shadow-none">
           <CardHeader>
             <CardTitle>This UI</CardTitle>
             <CardDescription>
-              Product shell for future serving. It does not host model weights.
+              Paste resume and job text, analyze, and review explainable
+              results.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            The compare screen only highlights lexicon overlaps so the layers
-            stay honest.
+            No fake demo scores. PDF/DOCX parsing is not claimed in this
+            milestone.
           </CardContent>
         </Card>
       </section>
