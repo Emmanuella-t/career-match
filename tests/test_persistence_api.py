@@ -34,6 +34,19 @@ def _auth_headers() -> dict[str, str]:
     return {"Authorization": "Bearer test-token"}
 
 
+def test_persistence_not_configured_without_database_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    from career_match.persistence.database import reset_database_cache
+    from career_match.persistence.errors import PersistenceNotConfiguredError
+    from career_match.persistence.store import get_persistence_store
+
+    reset_database_cache()
+    with pytest.raises(PersistenceNotConfiguredError, match="DATABASE_URL"):
+        get_persistence_store()
+
+
 def test_persistence_requires_auth(store: InMemoryPersistenceStore) -> None:
     application = create_app()
     application.state.persistence_store = store
