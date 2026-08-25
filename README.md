@@ -3,9 +3,10 @@
 Explainable ML-powered resume-to-job matching.
 
 Career Match turns the original Resume Screening notebook prototype into a
-maintainable monorepo: a Python ML package, reproducible dataset audits,
-automated tests, and (in the product layer) a web prototype. The original
-notebook, dataset, and cover image are preserved under `legacy/`.
+maintainable monorepo: a Python ML package, reproducible dataset audits, and
+automated tests. The original notebook, dataset, and cover image are
+preserved under `legacy/`. `frontend/` is an early Career Match product
+prototype built fresh in this repository; it is not a copy of an earlier UI.
 
 ## Current ML status
 
@@ -31,7 +32,7 @@ career-match/
 ├── experiments/        Reserved for matching baselines
 ├── data/               Reserved for derived datasets (not the raw CSV)
 ├── legacy/             Original notebook, CSV, README, and cover image
-├── frontend/           Product prototype (Next.js)
+├── frontend/           Early Career Match product prototype (built fresh here)
 └── .github/            CI
 ```
 

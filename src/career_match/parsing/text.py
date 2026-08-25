@@ -9,8 +9,14 @@ _WHITESPACE = re.compile(r"\s+")
 
 
 def repair_mojibake(text: str) -> str:
-    """Repair common UTF-8 text that was decoded as Latin-1 (for example ``NaÃ¯ve``)."""
-    if "Ã" not in text:
+    """Repair common UTF-8 text that was decoded as Latin-1.
+
+    Triggers on both ``â`` (punctuation / bullets) and ``Ã`` (accented letters).
+    The Latin-1 → UTF-8 round-trip is attempted only when those markers appear.
+    Legitimate Unicode such as ``château`` is left unchanged because the
+    round-trip raises ``UnicodeError`` and the original string is returned.
+    """
+    if "â" not in text and "Ã" not in text:
         return text
     try:
         return text.encode("latin-1").decode("utf-8")

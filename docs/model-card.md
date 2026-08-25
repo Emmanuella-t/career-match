@@ -39,7 +39,10 @@ copying stale numbers):
 - 169 rows, 25 categories, no empty resumes
 - 3 duplicate resume texts
 - Strong class imbalance (largest class: Java Developer; smallest: PMO)
-- A handful of UTF-8/Latin-1 mojibake rows
+- Encoding quality (computed from the CSV, not assumed): 128 rows contain
+  non-ASCII characters; 124 contain `â`; 6 contain `Ã`; 0 contain `�`;
+  **125 of 169 rows contain at least one suspicious encoding marker**.
+  Encoding damage is widespread, not a handful of isolated rows.
 
 This is **not** a matching dataset. There are no job descriptions, no
 relevance labels, and no agreed train/test split for matching.
@@ -61,7 +64,8 @@ document; it is preserved for history, not as a benchmark.
   skills, over-match short tokens if misconfigured, and ignores context.
 - Resume screening systems can encode historical hiring bias. No fairness
   audit has been run.
-- Encoding errors in the CSV can hide tokens (for example naïve → mojibake).
+- Encoding errors in the CSV are common (125 of 169 rows carry `â`, `Ã`,
+  or `�`) and can hide tokens (for example naïve → mojibake).
 
 ## Ethical considerations
 

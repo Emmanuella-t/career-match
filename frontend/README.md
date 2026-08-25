@@ -1,7 +1,8 @@
 # Career Match frontend
 
-Next.js product prototype for Career Match. This app is the product layer. It
-does not train or serve a matching model.
+`frontend/` is an early Career Match product prototype built fresh in this
+repository. It is the product layer. It does not train or serve a matching
+model, and it is not a preserved copy of an earlier UI.
 
 ## Scripts
 

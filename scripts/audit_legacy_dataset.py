@@ -3,55 +3,18 @@
 
 This script is deterministic: it only reports dataset facts (size, labels,
 duplicates, encoding issues). It does not train or score a matching model.
+Encoding metrics are counted separately so the report cannot collapse every
+non-ASCII row into a single "mojibake" figure.
 """
 
 from __future__ import annotations
 
 import argparse
-from collections import Counter
 from pathlib import Path
-from statistics import mean, median
 
-from career_match.data.legacy import default_dataset_path, load_legacy_dataset, repo_root
-from career_match.parsing.text import repair_mojibake
+from career_match.data.audit import audit_legacy_dataset
 
 REPORT_PATH = Path("reports") / "legacy_dataset_audit.md"
-
-
-def audit_legacy_dataset(path: Path | None = None) -> dict[str, object]:
-    """Return a JSON-serializable summary of the legacy dataset."""
-    dataset_path = path or default_dataset_path()
-    records = load_legacy_dataset(dataset_path)
-    try:
-        display_path = dataset_path.resolve().relative_to(repo_root())
-    except ValueError:
-        display_path = dataset_path
-    texts = [record.text for record in records]
-    lengths = [len(text) for text in texts]
-    categories = Counter(record.category for record in records)
-    unique_texts = set(texts)
-    mojibake_rows = [
-        record.source_row
-        for record in records
-        if "Ã" in record.text and repair_mojibake(record.text) != record.text
-    ]
-    return {
-        "path": str(display_path),
-        "rows": len(records),
-        "categories": dict(sorted(categories.items())),
-        "category_count": len(categories),
-        "empty_resumes": sum(1 for text in texts if not text.strip()),
-        "duplicate_resumes": len(texts) - len(unique_texts),
-        "unique_resumes": len(unique_texts),
-        "resume_chars_min": min(lengths) if lengths else 0,
-        "resume_chars_median": int(median(lengths)) if lengths else 0,
-        "resume_chars_mean": round(mean(lengths), 1) if lengths else 0.0,
-        "resume_chars_max": max(lengths) if lengths else 0,
-        "mojibake_row_count": len(mojibake_rows),
-        "mojibake_rows": mojibake_rows,
-        "most_common_category": categories.most_common(1)[0] if categories else ("", 0),
-        "least_common_category": categories.most_common()[-1] if categories else ("", 0),
-    }
 
 
 def render_report(summary: dict[str, object]) -> str:
@@ -77,10 +40,26 @@ def render_report(summary: dict[str, object]) -> str:
         f"- Resume length (characters): min {summary['resume_chars_min']}, "
         f"median {summary['resume_chars_median']}, mean {summary['resume_chars_mean']}, "
         f"max {summary['resume_chars_max']}",
-        f"- Rows with UTF-8/Latin-1 mojibake (for example `NaÃ¯ve`): "
-        f"**{summary['mojibake_row_count']}**",
         f"- Most common category: {most_name} ({most_n})",
         f"- Least common category: {least_name} ({least_n})",
+        "",
+        "## Encoding quality",
+        "",
+        "These counts are computed independently from the loaded CSV. They are",
+        "not interchangeable: a non-ASCII row is not automatically a mojibake",
+        "row, and the three markers are tracked separately.",
+        "",
+        f"- Rows containing any non-ASCII character: "
+        f"**{summary['non_ascii_rows']}**",
+        f"- Rows containing marker `â`: "
+        f"**{summary['rows_with_a_circumflex']}**",
+        f"- Rows containing marker `Ã`: "
+        f"**{summary['rows_with_a_tilde']}**",
+        f"- Rows containing replacement marker `�`: "
+        f"**{summary['rows_with_replacement']}**",
+        f"- Rows containing at least one suspicious encoding marker "
+        f"(`â`, `Ã`, or `�`): "
+        f"**{summary['rows_with_suspicious_encoding_marker']}**",
         "",
         "## Label distribution",
         "",
@@ -91,6 +70,7 @@ def render_report(summary: dict[str, object]) -> str:
     for name, count in sorted(categories.items(), key=lambda item: (-item[1], item[0])):
         share = (count / rows * 100) if rows else 0.0
         lines.append(f"| {name} | {count} | {share:.1f}% |")
+    suspicious = int(summary["rows_with_suspicious_encoding_marker"])  # type: ignore[arg-type]
     lines.extend(
         [
             "",
@@ -102,7 +82,9 @@ def render_report(summary: dict[str, object]) -> str:
             "- 169 rows across 25 classes is too small and too imbalanced for a",
             "  production matcher. Several classes have only 3–5 examples.",
             "- Duplicate resumes will leak across a naive random split.",
-            "- Encoding damage is limited but real; parsers must normalize text.",
+            f"- Encoding damage is widespread: **{suspicious} of {rows}** rows",
+            "  contain at least one suspicious encoding marker (`â`, `Ã`, or `�`).",
+            "  Parsers must normalize text; do not treat the CSV as clean Unicode.",
             "- The next ML milestone should define a matching task and split",
             "  policy **before** training embedding models.",
             "",

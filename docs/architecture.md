@@ -26,7 +26,7 @@ product UI, and so a future serving API can sit between them.
 
 | Module | Responsibility | Status |
 | --- | --- | --- |
-| `career_match.data` | Load and validate the legacy CSV | Implemented |
+| `career_match.data` | Load, validate, and audit the legacy CSV | Implemented |
 | `career_match.parsing` | Deterministic text normalization | Implemented |
 | `career_match.extraction` | Lexicon skill spans | Implemented (not a model) |
 | `career_match.matching` | Matcher protocol | Interface only |
@@ -53,8 +53,9 @@ matchers. Nothing in that directory is production.
 
 ## Product prototype
 
-`frontend/` is a Next.js App Router app (TypeScript, Tailwind, shadcn/ui).
-Routes:
+`frontend/` is an early Career Match product prototype built fresh in this
+repository (Next.js App Router, TypeScript, Tailwind, shadcn/ui). It is not a
+preserved copy of an earlier UI. Routes:
 
 - `/` — product overview and honest ML status
 - `/match` — lexicon skill-overlap demo (not a trained matcher)

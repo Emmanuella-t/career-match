@@ -13,9 +13,20 @@ a matching-model evaluation.
 - Duplicate resume texts: **3**
 - Empty resumes: **0**
 - Resume length (characters): min 129, median 2310, mean 2912.3, max 14609
-- Rows with UTF-8/Latin-1 mojibake (for example `NaÃ¯ve`): **6**
 - Most common category: Java Developer (14)
 - Least common category: PMO (3)
+
+## Encoding quality
+
+These counts are computed independently from the loaded CSV. They are
+not interchangeable: a non-ASCII row is not automatically a mojibake
+row, and the three markers are tracked separately.
+
+- Rows containing any non-ASCII character: **128**
+- Rows containing marker `â`: **124**
+- Rows containing marker `Ã`: **6**
+- Rows containing replacement marker `�`: **0**
+- Rows containing at least one suspicious encoding marker (`â`, `Ã`, or `�`): **125**
 
 ## Label distribution
 
@@ -55,6 +66,8 @@ a matching-model evaluation.
 - 169 rows across 25 classes is too small and too imbalanced for a
   production matcher. Several classes have only 3–5 examples.
 - Duplicate resumes will leak across a naive random split.
-- Encoding damage is limited but real; parsers must normalize text.
+- Encoding damage is widespread: **125 of 169** rows
+  contain at least one suspicious encoding marker (`â`, `Ã`, or `�`).
+  Parsers must normalize text; do not treat the CSV as clean Unicode.
 - The next ML milestone should define a matching task and split
   policy **before** training embedding models.
