@@ -1,7 +1,9 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { useCallback, useEffect, useId, useState } from "react";
 
+import { AuthGateModal } from "@/components/auth-gate-modal";
 import {
   MatchEmptyState,
   MatchLoadingState,
@@ -23,6 +25,19 @@ import {
   type MatchResponse,
   matchResumeToJob,
 } from "@/lib/api";
+import {
+  clearGuestUsageOnAuth,
+  getGuestAnalysisCount,
+  getRemainingGuestAnalyses,
+  GUEST_ANALYSIS_LIMIT,
+  recordSuccessfulGuestAnalysis,
+  shouldGateGuestAnalysis,
+} from "@/lib/guest-usage";
+import {
+  clearMatchDraft,
+  loadMatchDraft,
+  saveMatchDraft,
+} from "@/lib/match-draft";
 
 const SAMPLE_RESUME = `Jordan Lee
 Machine Learning Engineer
@@ -59,12 +74,41 @@ export function MatchForm() {
   const jobId = `${formId}-job`;
   const matcherId = `${formId}-matcher`;
 
+  const { isLoaded, isSignedIn } = useAuth();
+  const authenticated = Boolean(isSignedIn);
+
   const [resume, setResume] = useState("");
   const [job, setJob] = useState("");
   const [matcher, setMatcher] = useState<MatcherName>("semantic");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<MatchResponse | null>(null);
   const [pending, setPending] = useState(false);
+  const [authGateOpen, setAuthGateOpen] = useState(false);
+  const [guestCount, setGuestCount] = useState(0);
+
+  useEffect(() => {
+    /* Restore client-only draft + guest usage after mount (SSR has no storage). */
+    /* eslint-disable react-hooks/set-state-in-effect */
+    const draft = loadMatchDraft();
+    if (draft) {
+      setResume(draft.resume);
+      setJob(draft.job);
+      setMatcher(draft.matcher);
+    }
+    setGuestCount(getGuestAnalysisCount());
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded || !authenticated) return;
+    clearGuestUsageOnAuth();
+    /* eslint-disable-next-line react-hooks/set-state-in-effect -- sync UI after clearing guest storage */
+    setGuestCount(0);
+  }, [isLoaded, authenticated]);
+
+  const closeAuthGate = useCallback(() => {
+    setAuthGateOpen(false);
+  }, []);
 
   async function runAnalyze() {
     if (pending) return;
@@ -74,6 +118,14 @@ export function MatchForm() {
     if (!resume.trim() || !job.trim()) {
       setResult(null);
       setError("Paste both a resume and a job description to analyze the match.");
+      return;
+    }
+
+    const draft = { resume, job, matcher };
+    saveMatchDraft(draft);
+
+    if (shouldGateGuestAnalysis(authenticated)) {
+      setAuthGateOpen(true);
       return;
     }
 
@@ -87,6 +139,11 @@ export function MatchForm() {
         matcher,
       });
       setResult(response);
+      if (!authenticated) {
+        const next = recordSuccessfulGuestAnalysis();
+        setGuestCount(next);
+      }
+      clearMatchDraft();
     } catch (err) {
       setResult(null);
       if (err instanceof MatchApiError) {
@@ -101,119 +158,152 @@ export function MatchForm() {
     }
   }
 
+  const remaining = authenticated
+    ? null
+    : getRemainingGuestAnalyses(guestCount);
+  const returnPath = encodeURIComponent("/match");
+
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-      <Card className="border-border/80 shadow-none">
-        <CardHeader>
-          <CardTitle className="text-2xl tracking-tight">Analyze a match</CardTitle>
-          <CardDescription>
-            Paste resume text and a job description. Career Match returns a
-            relevance score with skill evidence from the selected matcher.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form
-            className="space-y-5"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void runAnalyze();
-            }}
-          >
-            <div className="grid gap-5 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor={resumeId}>Resume text</Label>
-                <Textarea
-                  id={resumeId}
-                  value={resume}
-                  onChange={(event) => setResume(event.target.value)}
-                  placeholder="Paste the full resume text…"
-                  className="min-h-56 resize-y bg-card md:min-h-72"
-                  disabled={pending}
-                  aria-invalid={Boolean(error) && !resume.trim()}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Paste text for this milestone. PDF/DOCX upload is not supported
-                  yet.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor={jobId}>Job description</Label>
-                <Textarea
-                  id={jobId}
-                  value={job}
-                  onChange={(event) => setJob(event.target.value)}
-                  placeholder="Paste the full job posting…"
-                  className="min-h-56 resize-y bg-card md:min-h-72"
-                  disabled={pending}
-                  aria-invalid={Boolean(error) && !job.trim()}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor={matcherId} className="text-xs text-muted-foreground">
-                Matcher (advanced)
-              </Label>
-              <select
-                id={matcherId}
-                value={matcher}
-                onChange={(event) =>
-                  setMatcher(event.target.value as MatcherName)
-                }
-                disabled={pending}
-                className="h-9 w-full max-w-xs rounded-lg border border-input bg-card px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+    <>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+        <Card className="border-border/80 shadow-none">
+          <CardHeader>
+            <CardTitle className="text-2xl tracking-tight">
+              Analyze a match
+            </CardTitle>
+            <CardDescription>
+              Paste resume text and a job description. Career Match returns a
+              relevance score with skill evidence from the selected matcher.
+            </CardDescription>
+            {isLoaded && !authenticated ? (
+              <p
+                className="mt-2 rounded-lg border border-career-green/25 bg-mint/15 px-3 py-2 text-sm text-primary"
+                role="status"
               >
-                {MATCHER_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {error ? (
-              <p className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
-                {error}
+                Guest mode:{" "}
+                {remaining === 0
+                  ? `you've used your ${GUEST_ANALYSIS_LIMIT} free analyses. Log in or sign up to continue.`
+                  : `${remaining} of ${GUEST_ANALYSIS_LIMIT} free analyses remaining.`}
               </p>
             ) : null}
+          </CardHeader>
+          <CardContent>
+            <form
+              className="space-y-5"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void runAnalyze();
+              }}
+            >
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor={resumeId}>Resume text</Label>
+                  <Textarea
+                    id={resumeId}
+                    value={resume}
+                    onChange={(event) => setResume(event.target.value)}
+                    placeholder="Paste the full resume text…"
+                    className="min-h-56 resize-y bg-card md:min-h-72"
+                    disabled={pending}
+                    aria-invalid={Boolean(error) && !resume.trim()}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Paste text for this milestone. PDF/DOCX upload is not
+                    supported yet.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={jobId}>Job description</Label>
+                  <Textarea
+                    id={jobId}
+                    value={job}
+                    onChange={(event) => setJob(event.target.value)}
+                    placeholder="Paste the full job posting…"
+                    className="min-h-56 resize-y bg-card md:min-h-72"
+                    disabled={pending}
+                    aria-invalid={Boolean(error) && !job.trim()}
+                  />
+                </div>
+              </div>
 
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <Button
-                type="submit"
-                size="lg"
-                disabled={pending}
-                className="bg-action text-action-foreground hover:bg-action/90"
-                aria-busy={pending}
-              >
-                {pending ? "Analyzing…" : "Analyze Match"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={pending}
-                onClick={() => {
-                  setResume(SAMPLE_RESUME);
-                  setJob(SAMPLE_JOB);
-                  setError(null);
-                  setResult(null);
-                }}
-              >
-                Load sample pair
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              <div className="space-y-2">
+                <Label
+                  htmlFor={matcherId}
+                  className="text-xs text-muted-foreground"
+                >
+                  Matcher (advanced)
+                </Label>
+                <select
+                  id={matcherId}
+                  value={matcher}
+                  onChange={(event) =>
+                    setMatcher(event.target.value as MatcherName)
+                  }
+                  disabled={pending}
+                  className="h-9 w-full max-w-xs rounded-lg border border-input bg-card px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {MATCHER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-      <div className="min-w-0">
-        {pending ? (
-          <MatchLoadingState />
-        ) : result ? (
-          <MatchResults result={result} />
-        ) : (
-          <MatchEmptyState />
-        )}
+              {error ? (
+                <p
+                  className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+                  role="alert"
+                >
+                  {error}
+                </p>
+              ) : null}
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={pending}
+                  className="bg-action text-action-foreground hover:bg-action/90"
+                  aria-busy={pending}
+                >
+                  {pending ? "Analyzing…" : "Analyze Match"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={pending}
+                  onClick={() => {
+                    setResume(SAMPLE_RESUME);
+                    setJob(SAMPLE_JOB);
+                    setError(null);
+                    setResult(null);
+                  }}
+                >
+                  Load sample pair
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <div className="min-w-0">
+          {pending ? (
+            <MatchLoadingState />
+          ) : result ? (
+            <MatchResults result={result} />
+          ) : (
+            <MatchEmptyState />
+          )}
+        </div>
       </div>
-    </div>
+
+      <AuthGateModal
+        open={authGateOpen}
+        onClose={closeAuthGate}
+        loginHref={`/login?redirect_url=${returnPath}`}
+        signupHref={`/signup?redirect_url=${returnPath}`}
+      />
+    </>
   );
 }

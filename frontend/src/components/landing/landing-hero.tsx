@@ -23,22 +23,27 @@ export function LandingHero() {
             where you fit, why you fit, and what you can improve.
           </p>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            <Link
-              href="/match"
-              className={cn(
-                buttonVariants({ size: "lg" }),
-                "font-cta h-12 bg-primary px-6 text-base text-primary-foreground hover:bg-primary/90",
-              )}
-            >
-              Find Your Match →
-            </Link>
-            <a
-              href="#how-it-works"
-              className="font-cta-secondary text-base font-semibold text-career-green underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              See How It Works
-            </a>
+          <div className="space-y-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+              <Link
+                href="/match"
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "font-cta h-12 bg-primary px-6 text-base text-primary-foreground hover:bg-primary/90",
+                )}
+              >
+                Try Career Match →
+              </Link>
+              <a
+                href="#how-it-works"
+                className="font-cta-secondary text-base font-semibold text-career-green underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                See How It Works
+              </a>
+            </div>
+            <p className="font-body text-sm text-muted-foreground">
+              No account required to get started.
+            </p>
           </div>
         </div>
 
