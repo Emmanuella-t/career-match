@@ -20,7 +20,7 @@ export function SiteHeader() {
           <BrandLogoCompact priority />
         </Link>
         <nav
-          className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground"
+          className="flex flex-wrap gap-x-5 gap-y-2 font-sans text-sm text-muted-foreground"
           aria-label="Primary"
         >
           {links.map((link) => (

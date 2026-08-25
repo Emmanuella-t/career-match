@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import {
-  Geist_Mono,
   League_Spartan,
   Literata,
   Montserrat,
+  Noto_Serif,
   Oswald,
 } from "next/font/google";
-
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 
 import "./globals.css";
 
@@ -32,8 +29,8 @@ const literata = Literata({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const notoSerif = Noto_Serif({
+  variable: "--font-noto-serif",
   subsets: ["latin"],
 });
 
@@ -54,12 +51,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${montserrat.variable} ${leagueSpartan.variable} ${oswald.variable} ${literata.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${montserrat.variable} ${leagueSpartan.variable} ${oswald.variable} ${literata.variable} ${notoSerif.variable} h-full scroll-smooth antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-background text-foreground">
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
+      <body className="flex min-h-full flex-col bg-background font-sans text-foreground">
+        {children}
       </body>
     </html>
   );

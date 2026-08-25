@@ -25,8 +25,10 @@ export default function ArchitecturePage() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 sm:py-14">
       <div className="max-w-3xl space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">Architecture</h1>
-        <p className="text-muted-foreground">
+        <h1 className="font-headline text-3xl font-semibold tracking-tight">
+          Architecture
+        </h1>
+        <p className="font-body text-muted-foreground">
           Career Match keeps product, serving, and ML in separate layers. The UI
           never imports model weights; it calls the HTTP matching service.
         </p>
@@ -45,10 +47,11 @@ export default function ArchitecturePage() {
         <CardHeader>
           <CardTitle>End-to-end flow</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm leading-6 text-muted-foreground">
+        <CardContent className="font-body space-y-2 text-sm leading-6 text-muted-foreground">
           <p>
-            Next.js UI → FastAPI <code>/api/v1/match</code> → selected matcher →
-            structured relevance and skill explainability → results UI.
+            Next.js UI → FastAPI <code className="font-sans">/api/v1/match</code>{" "}
+            → selected matcher → structured relevance and skill explainability →
+            results UI.
           </p>
           <p>
             Default matcher is Semantic Matcher v0.1. Scores are relevance
