@@ -17,11 +17,12 @@ using TF-IDF cosine similarity and catalog skill overlap. The result is a
 0–100 **baseline relevance score**, not a hiring probability and not a
 production model.
 
-The comparison target is **development benchmark v0.2** (56 synthetic
-pairs). Career Match currently compares two **standalone** matchers on
-that set:
+Career Match separates **development evaluation** (v0.2) from a **frozen
+holdout** (v0.3) before any hybrid-matcher work. Two **standalone**
+matchers are compared on v0.2 for error analysis; v0.3 is reserved for
+pre-hybrid holdout snapshots and later hybrid comparison.
 
-| Matcher | Precision@1 | NDCG@3 | Pairwise |
+| Matcher (on v0.2 development set) | Precision@1 | NDCG@3 | Pairwise |
 | --- | ---: | ---: | ---: |
 | Lexical Baseline v0.1 (TF-IDF + skill overlap) | 0.875 | 0.849 | 0.709 |
 | Semantic Matcher v0.1 (MiniLM cosine) | 1.000 | 0.900 | 0.865 |
@@ -35,29 +36,30 @@ category labels are not matching ground truth.
 
 ## ML experimentation
 
-Lexical and semantic matchers are measured independently on the same
-v0.2 labels (`scripts/compare_matchers.py`). Do not tune lexical weights
-against v0.2. Sentence embeddings require `pip install -e ".[semantic]"`
+Lexical and semantic matchers are measured independently on v0.2
+(`scripts/compare_matchers.py`) and recorded once on frozen holdout v0.3
+(`scripts/evaluate_holdout_v0_3.py`). Do not tune lexical weights against
+v0.2 or v0.3. Sentence embeddings require `pip install -e ".[semantic]"`
 or `.[dev]`. Importing `career_match` does not download MiniLM.
 
-## Evaluation benchmark
+## Evaluation benchmarks
 
-| | v0.1 | v0.2 |
-| --- | --- | --- |
-| Role | sanity-check fixture | harder development benchmark |
-| File | `data/evaluation/dev_relevance_fixture.json` | `data/evaluation/dev_benchmark_v0_2.json` |
-| Size | 4 jobs × 4 resumes = 16 pairs | 8 jobs × 7 resumes = 56 pairs |
-| Use | smoke-test ranking | compare TF-IDF vs future models |
+| | v0.1 | v0.2 | v0.3 |
+| --- | --- | --- | --- |
+| Role | sanity-check fixture | development / error analysis | frozen holdout |
+| File | `data/evaluation/dev_relevance_fixture.json` | `data/evaluation/dev_benchmark_v0_2.json` | `data/evaluation/holdout_benchmark_v0_3.json` |
+| Size | 4 jobs × 4 resumes = 16 pairs | 8 jobs × 7 resumes = 56 pairs | 9 jobs × 8 resumes = 72 pairs |
+| Use | smoke-test ranking | develop and analyze models | pre-hybrid holdout comparison |
 
 ```bash
 python scripts/evaluate_baseline.py
 python scripts/evaluate_benchmark_v0_2.py
+python scripts/evaluate_holdout_v0_3.py
 ```
 
-Future sentence-embedding or hybrid rankers must be scored on v0.2 with
-the same development relevance labels. Do not tune lexical weights against
-v0.2 just to raise the score. Those labels are not independently validated
-ground truth.
+Do not tune lexical weights against v0.2 or v0.3 just to raise the score.
+Holdout v0.3 should remain frozen during hybrid-matcher development.
+Labels are not independently validated ground truth.
 
 ## Repository layout
 
@@ -69,7 +71,7 @@ career-match/
 ├── docs/               Architecture notes and model card
 ├── reports/            Generated audit and baseline evaluation output
 ├── experiments/        Reserved for later matching experiments
-├── data/evaluation/    v0.1 sanity fixture and v0.2 development benchmark
+├── data/evaluation/    v0.1 sanity fixture, v0.2 development, v0.3 holdout
 ├── legacy/             Original notebook, CSV, README, and cover image
 ├── frontend/           Early Career Match product prototype (built fresh here)
 └── .github/            CI
@@ -91,6 +93,7 @@ python scripts/run_baseline_match.py --sample
 python scripts/evaluate_baseline.py
 python scripts/evaluate_benchmark_v0_2.py
 python scripts/compare_matchers.py
+python scripts/evaluate_holdout_v0_3.py
 ```
 
 Installation uses `pyproject.toml`. There is no root `requirements.txt`.

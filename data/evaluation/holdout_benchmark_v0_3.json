@@ -1,0 +1,1091 @@
+{
+  "name": "career-match-holdout-benchmark-v0.3",
+  "kind": "frozen holdout evaluation benchmark",
+  "version": "0.3",
+  "disclaimer": "Synthetic resume/job pairs constructed for a frozen holdout evaluation before Career Match hybrid-matcher development. Not real candidate data. Not production hiring labels. Not production ground truth. Relevance grades are manually specified synthetic relevance judgments, not independently validated ground truth. No independent annotator agreement. Intended for controlled model comparison only. v0.3 was created before development or tuning of the future Career Match hybrid matcher and should remain frozen during that milestone. Legacy CSV category labels are not used.",
+  "provenance": {
+    "synthetic": true,
+    "constructed_for": "controlled model comparison before hybrid-matcher development",
+    "real_candidate_data": false,
+    "real_hiring_outcomes": false,
+    "production_hiring_labels": false,
+    "independent_annotator_agreement": false,
+    "production_ground_truth": false,
+    "intended_use": "controlled model comparison",
+    "label_type": "manually specified synthetic relevance judgments",
+    "review_status": "awaiting/available for manual review",
+    "frozen_before_hybrid_matcher": true,
+    "freeze_note": "v0.3 was created before development or tuning of the future Career Match hybrid matcher and should remain frozen during that milestone.",
+    "not_development_benchmark": true,
+    "development_benchmark_remains": "career-match-dev-benchmark-v0.2"
+  },
+  "relevant_threshold": 2,
+  "comparison_note": "v0.1 is a sanity-check fixture. v0.2 remains the development/error-analysis benchmark. v0.3 is the frozen holdout benchmark for comparing Lexical Baseline Matcher v0.1, Semantic Matcher v0.1, and a future Hybrid Matcher. Do not tune models against v0.3.",
+  "relevance_scale": {
+    "3": "strong match — right role family, required work and seniority largely present",
+    "2": "moderate match — related role or partial skills; plausible interview with gaps",
+    "1": "weak match — overlapping tools or adjacent family, wrong core responsibilities or seniority",
+    "0": "mismatch — different occupation; includes keyword-stuffing and unrelated stacks"
+  },
+  "jobs": [
+    {
+      "job_id": "hold-mle",
+      "title": "Machine Learning Engineer",
+      "family": "machine-learning",
+      "min_years_experience": 4,
+      "required_skills": [
+        "Python",
+        "PyTorch",
+        "scikit-learn",
+        "Docker",
+        "Git",
+        "Linux"
+      ],
+      "preferred_skills": [
+        "TensorFlow",
+        "Kubernetes",
+        "AWS"
+      ],
+      "description": "Seeking a Machine Learning Engineer with four or more years to design, train, and productionize predictive modeling systems. Day-to-day work centers on Python, PyTorch, and scikit-learn, plus packaging training jobs for inference services. Docker, Git, and Linux are required; public cloud platforms and container orchestration are preferred. This seat owns model quality and launch readiness, not weekly business dashboards and not pure application CRUD services."
+    },
+    {
+      "job_id": "hold-aai",
+      "title": "Applied AI Engineer",
+      "family": "applied-ai",
+      "min_years_experience": 3,
+      "required_skills": [
+        "Python",
+        "Git",
+        "Docker",
+        "REST APIs"
+      ],
+      "preferred_skills": [
+        "PyTorch",
+        "AWS",
+        "FastAPI"
+      ],
+      "description": "Applied AI Engineer to integrate foundation-model capabilities into product workflows. You will ship Python services that call hosted models, add evaluation harnesses, and expose RESTful services for internal clients. Git and Docker are expected. Three or more years building AI-backed features. We are not hiring a research scientist to invent new architectures, and we are not hiring a dashboard-only analyst."
+    },
+    {
+      "job_id": "hold-ds",
+      "title": "Data Scientist",
+      "family": "data-science",
+      "min_years_experience": 3,
+      "required_skills": [
+        "Python",
+        "pandas",
+        "SQL",
+        "scikit-learn",
+        "Git"
+      ],
+      "preferred_skills": [
+        "NumPy",
+        "Machine Learning"
+      ],
+      "description": "Data Scientist for causal product experiments and predictive modeling on tabular customer data. Core tools are Python, pandas, SQL, and scikit-learn with reproducible Git workflows. Three or more years. Not a deep-learning research lab role and not a frontend component seat."
+    },
+    {
+      "job_id": "hold-da",
+      "title": "Data Analyst",
+      "family": "analytics",
+      "min_years_experience": 2,
+      "required_skills": [
+        "SQL",
+        "Python",
+        "Git"
+      ],
+      "preferred_skills": [
+        "pandas"
+      ],
+      "description": "Data Analyst responsible for recurring stakeholder reporting from relational data stores. Expect heavy SQL, light Python cleaning, and Git for report definitions. Two or more years. We do not need neural network training, inference services, or React interfaces."
+    },
+    {
+      "job_id": "hold-be",
+      "title": "Backend Engineer",
+      "family": "backend",
+      "min_years_experience": 4,
+      "required_skills": [
+        "Python",
+        "FastAPI",
+        "REST APIs",
+        "SQL",
+        "Docker",
+        "Git",
+        "Linux"
+      ],
+      "preferred_skills": [
+        "PostgreSQL",
+        "AWS"
+      ],
+      "description": "Backend Engineer with four-plus years delivering RESTful services in Python (FastAPI preferred), relational data stores, Docker packaging, and Linux hosts under Git review. Ownership covers reliability and data access layers. Not a predictive modeling role and not a UI engineering role."
+    },
+    {
+      "job_id": "hold-fs",
+      "title": "Full-Stack Engineer",
+      "family": "full-stack",
+      "min_years_experience": 3,
+      "required_skills": [
+        "TypeScript",
+        "React",
+        "Python",
+        "REST APIs",
+        "SQL",
+        "Git"
+      ],
+      "preferred_skills": [
+        "Next.js",
+        "Docker"
+      ],
+      "description": "Full-Stack Engineer delivering TypeScript React experiences and Python RESTful services in one team. SQL and Git required. Three or more years across UI and service boundaries. Not an MLOps platform role and not a research NLP seat."
+    },
+    {
+      "job_id": "hold-mlops",
+      "title": "MLOps Engineer",
+      "family": "mlops",
+      "min_years_experience": 4,
+      "required_skills": [
+        "Python",
+        "Docker",
+        "Kubernetes",
+        "AWS",
+        "Git",
+        "Linux"
+      ],
+      "preferred_skills": [
+        "Terraform"
+      ],
+      "description": "MLOps Engineer to operate model serving and inference services on public cloud platforms. Stack emphasizes Python automation, Docker, container orchestration (Kubernetes), AWS, Git, and Linux. Four or more years. You productionize others training artifacts rather than inventing new model families. Not a React product role."
+    },
+    {
+      "job_id": "hold-de",
+      "title": "Data Engineer",
+      "family": "data-engineering",
+      "min_years_experience": 3,
+      "required_skills": [
+        "Python",
+        "SQL",
+        "Docker",
+        "AWS",
+        "Git"
+      ],
+      "preferred_skills": [
+        "Spark",
+        "Airflow",
+        "PostgreSQL"
+      ],
+      "description": "Data Engineer building batch pipelines into analytical warehouses. Daily tools include Python, SQL, relational data stores, distributed processing (Spark), workflow orchestration, Docker, and public cloud platforms. Git required. Three or more years. Need trustworthy pipelines, not narrative KPI storytelling and not neural architecture research."
+    },
+    {
+      "job_id": "hold-nlp",
+      "title": "NLP Engineer",
+      "family": "nlp",
+      "min_years_experience": 3,
+      "required_skills": [
+        "Python",
+        "PyTorch",
+        "NLP",
+        "Git",
+        "Docker"
+      ],
+      "preferred_skills": [
+        "Transformers",
+        "AWS"
+      ],
+      "description": "NLP Engineer focused on text understanding systems: tokenization, sequence models, evaluation, and packaging for inference services. Python, PyTorch, and NLP libraries are core; Docker and Git required. Three or more years. Not a general backend CRUD seat and not a BI reporting seat."
+    }
+  ],
+  "resumes": [
+    {
+      "resume_id": "h-mle-core",
+      "years_experience": 5,
+      "profile_summary": "Machine Learning Engineer shipping predictive systems to production.",
+      "experience_text": "Five years training ranking and classification models in Python with PyTorch and scikit-learn. Packaged training and launched inference services with Docker on Linux. Git-based reviews. Occasional TensorFlow migrations. Not a dashboard owner.",
+      "skills_text": "Python, PyTorch, scikit-learn, Docker, Git, Linux, TensorFlow, inference services"
+    },
+    {
+      "resume_id": "h-mle-paraphrase",
+      "years_experience": 5,
+      "profile_summary": "Applied modeler specializing in neural estimators and online scoring.",
+      "experience_text": "Five years building neural estimators for ranking problems and operating model serving paths without naming vendor clouds. Comfortable with containerized training loops, predictive modeling, and source control on UNIX workstations. Avoids listing PyTorch or AWS by brand.",
+      "skills_text": "neural estimators, predictive modeling, model serving, containers, unix, source control"
+    },
+    {
+      "resume_id": "h-mle-notebook",
+      "years_experience": 4,
+      "profile_summary": "Research-leaning modeler with limited launch experience.",
+      "experience_text": "Four years of PyTorch and scikit-learn experiments in notebooks. Mentions Docker and Kubernetes in skills but states no production Docker ownership and has not operated inference services. Git used for papers.",
+      "skills_text": "Python, PyTorch, scikit-learn, Git, Docker, Kubernetes, AWS"
+    },
+    {
+      "resume_id": "h-mle-junior",
+      "years_experience": 0.8,
+      "profile_summary": "Recent graduate with a short ML internship.",
+      "experience_text": "Eight-month internship reproducing a scikit-learn baseline and a small PyTorch tutorial. Course projects only. No multi-year production launch record and no ownership of inference services.",
+      "skills_text": "Python, PyTorch, scikit-learn, Git"
+    },
+    {
+      "resume_id": "h-aai-core",
+      "years_experience": 4,
+      "profile_summary": "Applied AI Engineer embedding hosted models into product flows.",
+      "experience_text": "Four years wiring foundation-model APIs into Python microservices, adding offline evaluation suites, and publishing RESTful services for product teams. Docker and Git daily. Light fine-tuning; rarely trains large networks from scratch.",
+      "skills_text": "Python, REST APIs, FastAPI, Docker, Git, AWS, evaluation harnesses"
+    },
+    {
+      "resume_id": "h-aai-synonym",
+      "years_experience": 4,
+      "profile_summary": "Product AI integrator focused on generative assistants.",
+      "experience_text": "Four years connecting hosted language systems to internal tools, writing HTTP backends, and measuring quality with offline checks. Uses containers and source control. Prefers describing REST services rather than naming FastAPI or AWS.",
+      "skills_text": "hosted language systems, HTTP backends, REST services, containers, source control, offline evaluation"
+    },
+    {
+      "resume_id": "h-ds-core",
+      "years_experience": 4,
+      "profile_summary": "Data Scientist running product experiments and tabular models.",
+      "experience_text": "Four years designing A/B tests and training tabular classifiers with Python, pandas, SQL, and scikit-learn. Shares analyses through Git. Does not own React surfaces or Kubernetes clusters.",
+      "skills_text": "Python, pandas, SQL, scikit-learn, Git, NumPy, Machine Learning"
+    },
+    {
+      "resume_id": "h-ds-paraphrase",
+      "years_experience": 4,
+      "profile_summary": "Experimentation scientist using statistical learning on customer tables.",
+      "experience_text": "Four years of causal studies and predictive modeling against relational data stores. Works with tabular analysis libraries and reproducible notebooks under source control. Omits pandas/scikit-learn brand names.",
+      "skills_text": "causal studies, predictive modeling, relational data stores, tabular analysis, source control"
+    },
+    {
+      "resume_id": "h-ds-partial",
+      "years_experience": 3,
+      "profile_summary": "Analytics engineer strong in wrangling, light on modeling.",
+      "experience_text": "Three years of Python, pandas, and SQL extracts for growth teams. Limited scikit-learn practice and no deep learning. Solid Git habits.",
+      "skills_text": "Python, pandas, SQL, Git"
+    },
+    {
+      "resume_id": "h-da-core",
+      "years_experience": 3,
+      "profile_summary": "Data Analyst owning recurring KPI packs.",
+      "experience_text": "Three years writing SQL against warehouses, maintaining stakeholder dashboards, and using light Python to tidy exports. Git for report configs. No model training and no service ownership.",
+      "skills_text": "SQL, Python, Git, dashboards, spreadsheets"
+    },
+    {
+      "resume_id": "h-da-synonym",
+      "years_experience": 3,
+      "profile_summary": "Business reporting specialist for leadership scorecards.",
+      "experience_text": "Three years producing business reporting from relational data stores and spreadsheet models. Builds charts for weekly reviews. Does not list SQL or Python as named tools.",
+      "skills_text": "business reporting, relational data stores, spreadsheets, charts"
+    },
+    {
+      "resume_id": "h-be-core",
+      "years_experience": 5,
+      "profile_summary": "Backend Engineer for high-traffic Python APIs.",
+      "experience_text": "Five years shipping REST APIs with FastAPI, SQL access layers, Docker on Linux, and Git reviews. PostgreSQL preferred. No predictive modeling ownership and no React product work.",
+      "skills_text": "Python, FastAPI, REST APIs, SQL, PostgreSQL, Docker, Linux, Git, AWS"
+    },
+    {
+      "resume_id": "h-be-synonym",
+      "years_experience": 5,
+      "profile_summary": "Service engineer for HTTP backends and persistence.",
+      "experience_text": "Five years delivering RESTful services against relational data stores on public cloud platforms. Writes auth, handlers, and persistence. Uses containers and UNIX hosts. Avoids naming FastAPI, PostgreSQL, or AWS.",
+      "skills_text": "RESTful services, relational data stores, public cloud platforms, containers, unix, HTTP"
+    },
+    {
+      "resume_id": "h-be-negation",
+      "years_experience": 4,
+      "profile_summary": "API developer without production container ownership.",
+      "experience_text": "Four years of FastAPI and SQL backends with Git. Skills list includes Docker, Kubernetes, and AWS, but narrative states no production Docker experience and has not deployed services to public cloud platforms. Local Linux only.",
+      "skills_text": "Python, FastAPI, REST APIs, SQL, Git, Linux, Docker, Kubernetes, AWS"
+    },
+    {
+      "resume_id": "h-be-junior",
+      "years_experience": 1,
+      "profile_summary": "Junior backend intern finishing first year.",
+      "experience_text": "One-year internship writing small Flask endpoints and SQL queries. Some Git. No multi-year ownership of Dockerized services or cloud deployments.",
+      "skills_text": "Python, Flask, SQL, Git"
+    },
+    {
+      "resume_id": "h-fs-core",
+      "years_experience": 4,
+      "profile_summary": "Full-Stack Engineer spanning React and Python services.",
+      "experience_text": "Four years delivering TypeScript React screens and Python REST APIs with SQL and Git. Some Docker. Not an ML trainer and not a cluster operator.",
+      "skills_text": "TypeScript, React, Python, REST APIs, SQL, Git, Docker, Next.js"
+    },
+    {
+      "resume_id": "h-fs-synonym",
+      "years_experience": 4,
+      "profile_summary": "Product engineer covering interfaces and service contracts.",
+      "experience_text": "Four years shipping customer-facing interfaces alongside HTTP backends and relational persistence. Comfortable across UI components and service boundaries. Omits React, TypeScript, and FastAPI brand names.",
+      "skills_text": "customer-facing interfaces, HTTP backends, relational persistence, UI components, source control"
+    },
+    {
+      "resume_id": "h-fe-only",
+      "years_experience": 4,
+      "profile_summary": "Frontend specialist in TypeScript React products.",
+      "experience_text": "Four years of TypeScript React and Next.js features with HTML, CSS, and Git. No Python services and no warehouse pipelines.",
+      "skills_text": "TypeScript, React, Next.js, HTML, CSS, JavaScript, Git"
+    },
+    {
+      "resume_id": "h-mlops-core",
+      "years_experience": 5,
+      "profile_summary": "MLOps Engineer operating inference fleets.",
+      "experience_text": "Five years on model serving: Docker, Kubernetes, AWS, Git, Linux, and Python automation for inference services. Rarely trains networks. Owns rollouts and monitoring for other teams models.",
+      "skills_text": "Python, Docker, Kubernetes, AWS, Git, Linux, model serving, Terraform"
+    },
+    {
+      "resume_id": "h-mlops-synonym",
+      "years_experience": 5,
+      "profile_summary": "Platform engineer for online scoring systems.",
+      "experience_text": "Five years operating inference services on public cloud platforms with container orchestration and automated rollouts. Uses source control and UNIX hosts. Avoids naming Kubernetes or AWS explicitly.",
+      "skills_text": "inference services, public cloud platforms, container orchestration, automated rollouts, unix, source control"
+    },
+    {
+      "resume_id": "h-mlops-negation",
+      "years_experience": 4,
+      "profile_summary": "Automation-minded Python engineer new to clusters.",
+      "experience_text": "Four years writing Python deploy scripts and Dockerfiles. Skills mention Kubernetes, but narrative admits limited exposure to container orchestration and has not owned production inference services. Git and Linux are daily.",
+      "skills_text": "Python, Docker, AWS, Git, Linux, Kubernetes"
+    },
+    {
+      "resume_id": "h-de-core",
+      "years_experience": 4,
+      "profile_summary": "Data Engineer for warehouse-bound batch pipelines.",
+      "experience_text": "Four years building Python and SQL pipelines into PostgreSQL analytical stores with Spark and Airflow. Dockerized workers on AWS. Git required. Not a dashboard storyteller and not an NLP researcher.",
+      "skills_text": "Python, SQL, PostgreSQL, Spark, Airflow, Docker, AWS, Git"
+    },
+    {
+      "resume_id": "h-de-synonym",
+      "years_experience": 4,
+      "profile_summary": "Pipeline engineer for analytical lakehouse landings.",
+      "experience_text": "Four years operating data pipelines into relational warehouses on public cloud platforms. Orchestrates batch jobs and containerized workers using distributed processing patterns. Does not name Spark, Airflow, or AWS.",
+      "skills_text": "data pipelines, relational warehouses, public cloud platforms, batch jobs, containers, distributed processing"
+    },
+    {
+      "resume_id": "h-nlp-core",
+      "years_experience": 4,
+      "profile_summary": "NLP Engineer for production text understanding.",
+      "experience_text": "Four years building sequence models and retrieval features with Python and PyTorch. Packages models for inference services with Docker and Git. Familiar with transformer libraries. Not a BI reporting role.",
+      "skills_text": "Python, PyTorch, NLP, Transformers, Docker, Git, AWS"
+    },
+    {
+      "resume_id": "h-nlp-synonym",
+      "years_experience": 4,
+      "profile_summary": "Language systems engineer for document understanding.",
+      "experience_text": "Four years shipping text understanding pipelines, tokenization stacks, and online scoring for language tasks. Uses neural libraries and containers. Prefers phrasing like sequence models and inference services instead of PyTorch brand tokens.",
+      "skills_text": "text understanding, sequence models, tokenization, inference services, neural libraries, containers"
+    },
+    {
+      "resume_id": "h-stuffing",
+      "years_experience": 7,
+      "profile_summary": "Polyglot technologist listing every popular tool.",
+      "experience_text": "Claims seven years. Resume body repeats Python PyTorch TensorFlow NLP Docker Kubernetes AWS Azure GCP Spark Airflow PostgreSQL React Next.js FastAPI Django SQL REST APIs Machine Learning Deep Learning without describing a shipped model, a service, a pipeline, or a dashboard. No responsibilities and no outcomes.",
+      "skills_text": "Python, Java, JavaScript, TypeScript, SQL, C++, React, Next.js, FastAPI, Django, PyTorch, TensorFlow, scikit-learn, pandas, NumPy, AWS, Azure, GCP, Docker, Kubernetes, Git, Linux, Machine Learning, Deep Learning, NLP, Spark, Airflow, PostgreSQL, REST APIs"
+    },
+    {
+      "resume_id": "h-systems",
+      "years_experience": 6,
+      "profile_summary": "Systems programmer in C++ on Linux clusters.",
+      "experience_text": "Six years of C++ and low-level networking on Linux clusters. Occasional Kubernetes CNI work. No Python analytics, no RESTful services, no React, no SQL warehouses, no predictive modeling.",
+      "skills_text": "C++, Linux, Kubernetes, Git"
+    },
+    {
+      "resume_id": "h-swe-general",
+      "years_experience": 5,
+      "profile_summary": "Software Engineer across general product features.",
+      "experience_text": "Five years as a general Software Engineer on CRUD product features in mixed stacks. Some Python scripts and Git. No dedicated ML training, no warehouse orchestration, and no ownership of inference services.",
+      "skills_text": "Python, Git, SQL, JavaScript"
+    },
+    {
+      "resume_id": "h-weak-practice",
+      "years_experience": 3,
+      "profile_summary": "Tool-aware practitioner with thin delivery evidence.",
+      "experience_text": "Three years attending workshops on machine learning, Docker, and cloud platforms. Portfolio shows toy notebooks and unfinished demos. Weak practical experience launching or operating systems used by others.",
+      "skills_text": "Python, Machine Learning, Docker, AWS, Git"
+    }
+  ],
+  "judgments": [
+    {
+      "job_id": "hold-mle",
+      "resume_id": "h-mle-core",
+      "grade": 3,
+      "rationale": "3 — 5y production predictive modeling with PyTorch/scikit-learn and inference packaging matches the MLE seat. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "hold-mle",
+      "resume_id": "h-mle-paraphrase",
+      "grade": 3,
+      "rationale": "3 — Same modeling and model-serving responsibilities with synonym vocabulary (neural estimators, model serving). Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "hold-mle",
+      "resume_id": "h-nlp-core",
+      "grade": 2,
+      "rationale": "2 — Strong NLP/PyTorch adjacent engineer; related family but narrower than general MLE scope. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role",
+        "adjacent_role"
+      ]
+    },
+    {
+      "job_id": "hold-mle",
+      "resume_id": "h-aai-core",
+      "grade": 2,
+      "rationale": "2 — Applied AI product integrator with Python/Docker overlap; more hosted models than training ownership. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role",
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "hold-mle",
+      "resume_id": "h-mle-notebook",
+      "grade": 1,
+      "rationale": "1 — Names training tools but explicitly lacks production Docker and inference-service ownership (negation). Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "negation",
+        "experience_mismatch"
+      ]
+    },
+    {
+      "job_id": "hold-mle",
+      "resume_id": "h-mle-junior",
+      "grade": 1,
+      "rationale": "1 — Sub-year internship versus 4+ year production modeling requirement (seniority mismatch). Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "seniority_mismatch"
+      ]
+    },
+    {
+      "job_id": "hold-mle",
+      "resume_id": "h-be-core",
+      "grade": 1,
+      "rationale": "1 — Strong Python/Docker/Git overlap but core work is REST APIs, not predictive modeling. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role",
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "hold-mle",
+      "resume_id": "h-stuffing",
+      "grade": 0,
+      "rationale": "0 — Keyword stuffing across the catalog without evidence of modeling work; hard negative. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "hard_negative",
+        "keyword_stuffing"
+      ]
+    },
+    {
+      "job_id": "hold-aai",
+      "resume_id": "h-aai-core",
+      "grade": 3,
+      "rationale": "3 — Four years integrating hosted models into Python RESTful services with Docker/Git matches Applied AI. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "hold-aai",
+      "resume_id": "h-aai-synonym",
+      "grade": 3,
+      "rationale": "3 — Equivalent product-AI integration described via REST services and hosted language systems. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "hold-aai",
+      "resume_id": "h-mle-core",
+      "grade": 2,
+      "rationale": "2 — Related ML engineer who can ship services, but profile centers on training rather than product AI wiring. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "hold-aai",
+      "resume_id": "h-fs-core",
+      "grade": 2,
+      "rationale": "2 — Full-stack Python/REST overlap; only partial AI feature ownership. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "partial_skills",
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "hold-aai",
+      "resume_id": "h-be-core",
+      "grade": 1,
+      "rationale": "1 — Backend REST strength without applied AI/foundation-model integration evidence. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "hold-aai",
+      "resume_id": "h-weak-practice",
+      "grade": 1,
+      "rationale": "1 — Lists ML/Docker/cloud tools with weak practical delivery evidence. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "weak_practical_experience"
+      ]
+    },
+    {
+      "job_id": "hold-aai",
+      "resume_id": "h-da-core",
+      "grade": 1,
+      "rationale": "1 — Analyst reporting profile adjacent only via Python/Git; wrong core responsibilities. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "adjacent_role"
+      ]
+    },
+    {
+      "job_id": "hold-aai",
+      "resume_id": "h-systems",
+      "grade": 0,
+      "rationale": "0 — C++/cluster systems work with no AI product integration; mismatch. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "hard_negative",
+        "irrelevant_shared_terms"
+      ]
+    },
+    {
+      "job_id": "hold-ds",
+      "resume_id": "h-ds-core",
+      "grade": 3,
+      "rationale": "3 — Four years of experiments and tabular scikit-learn modeling is the Data Scientist job. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "hold-ds",
+      "resume_id": "h-ds-paraphrase",
+      "grade": 2,
+      "rationale": "2 — Role fit via predictive modeling and relational data stores without naming pandas/scikit-learn. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "hold-ds",
+      "resume_id": "h-ds-partial",
+      "grade": 2,
+      "rationale": "2 — Correct data family with Python/SQL/pandas but missing scikit-learn experimentation depth. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "hold-ds",
+      "resume_id": "h-mle-core",
+      "grade": 2,
+      "rationale": "2 — Related ML engineer; core work is deep training/serving rather than product experiments. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role",
+        "adjacent_role"
+      ]
+    },
+    {
+      "job_id": "hold-ds",
+      "resume_id": "h-da-core",
+      "grade": 1,
+      "rationale": "1 — Closely related analyst; reporting/SQL without experimental design. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "hold-ds",
+      "resume_id": "h-be-core",
+      "grade": 1,
+      "rationale": "1 — Python/SQL for services, not analysis or experimentation. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "hold-ds",
+      "resume_id": "h-mle-junior",
+      "grade": 1,
+      "rationale": "1 — Junior internship coursework for a 3+ year scientist seat. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "seniority_mismatch"
+      ]
+    },
+    {
+      "job_id": "hold-ds",
+      "resume_id": "h-systems",
+      "grade": 0,
+      "rationale": "0 — C++ systems profile with no analytics stack; hard negative. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "hard_negative",
+        "irrelevant_shared_terms"
+      ]
+    },
+    {
+      "job_id": "hold-da",
+      "resume_id": "h-da-core",
+      "grade": 3,
+      "rationale": "3 — Three years of SQL dashboards and light Python reporting matches the analyst seat. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "hold-da",
+      "resume_id": "h-da-synonym",
+      "grade": 2,
+      "rationale": "2 — Business reporting and relational data stores without naming SQL/Python. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "hold-da",
+      "resume_id": "h-ds-partial",
+      "grade": 2,
+      "rationale": "2 — Python/SQL wrangling can cover analyst work but leans engineering extracts over KPI packs. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "partial_skills",
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "hold-da",
+      "resume_id": "h-ds-core",
+      "grade": 2,
+      "rationale": "2 — Data Scientist overqualified for reporting; experimental ML profile rather than weekly KPIs. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role",
+        "seniority_mismatch"
+      ]
+    },
+    {
+      "job_id": "hold-da",
+      "resume_id": "h-be-core",
+      "grade": 1,
+      "rationale": "1 — SQL appears in APIs, not stakeholder reporting. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "hold-da",
+      "resume_id": "h-weak-practice",
+      "grade": 1,
+      "rationale": "1 — Workshop familiarity without sustained reporting ownership. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "weak_practical_experience"
+      ]
+    },
+    {
+      "job_id": "hold-da",
+      "resume_id": "h-swe-general",
+      "grade": 1,
+      "rationale": "1 — General software engineer with thin analytics evidence. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "adjacent_role"
+      ]
+    },
+    {
+      "job_id": "hold-da",
+      "resume_id": "h-fe-only",
+      "grade": 0,
+      "rationale": "0 — Frontend React profile with no reporting work; mismatch. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "hard_negative"
+      ]
+    },
+    {
+      "job_id": "hold-be",
+      "resume_id": "h-be-core",
+      "grade": 3,
+      "rationale": "3 — Five years FastAPI/SQL/Docker/Linux services match the Backend Engineer role. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "hold-be",
+      "resume_id": "h-be-synonym",
+      "grade": 3,
+      "rationale": "3 — RESTful services on relational stores and public cloud platforms with synonym phrasing. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "hold-be",
+      "resume_id": "h-fs-core",
+      "grade": 2,
+      "rationale": "2 — Full-stack engineer with real Python REST delivery; partial UI focus beyond backend seat. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role",
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "hold-be",
+      "resume_id": "h-de-core",
+      "grade": 2,
+      "rationale": "2 — Adjacent data engineer with Python/SQL/Docker; pipelines rather than product APIs. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "adjacent_role"
+      ]
+    },
+    {
+      "job_id": "hold-be",
+      "resume_id": "h-be-negation",
+      "grade": 1,
+      "rationale": "1 — Names Docker/Kubernetes/AWS but denies production container and cloud deployment experience. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "negation",
+        "experience_mismatch"
+      ]
+    },
+    {
+      "job_id": "hold-be",
+      "resume_id": "h-be-junior",
+      "grade": 1,
+      "rationale": "1 — One-year internship versus 4+ year backend ownership requirement. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "seniority_mismatch"
+      ]
+    },
+    {
+      "job_id": "hold-be",
+      "resume_id": "h-mle-core",
+      "grade": 1,
+      "rationale": "1 — Shared Python/Docker/Git but modeling focus, not service reliability ownership. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role",
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "hold-be",
+      "resume_id": "h-stuffing",
+      "grade": 0,
+      "rationale": "0 — Catalog keyword stuffing without service delivery evidence; hard negative. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "hard_negative",
+        "keyword_stuffing"
+      ]
+    },
+    {
+      "job_id": "hold-fs",
+      "resume_id": "h-fs-core",
+      "grade": 3,
+      "rationale": "3 — Four years spanning TypeScript React and Python REST/SQL matches Full-Stack. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "hold-fs",
+      "resume_id": "h-fs-synonym",
+      "grade": 2,
+      "rationale": "2 — Interfaces plus HTTP backends described without React/TypeScript brand tokens. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "hold-fs",
+      "resume_id": "h-be-core",
+      "grade": 2,
+      "rationale": "2 — Strong backend half of the stack; missing demonstrated React/TypeScript UI depth. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "partial_skills",
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "hold-fs",
+      "resume_id": "h-fe-only",
+      "grade": 2,
+      "rationale": "2 — Strong frontend half; missing Python REST ownership. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "hold-fs",
+      "resume_id": "h-aai-core",
+      "grade": 1,
+      "rationale": "1 — Python services overlap but AI integration focus, not full UI+API product ownership. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "adjacent_role"
+      ]
+    },
+    {
+      "job_id": "hold-fs",
+      "resume_id": "h-da-core",
+      "grade": 1,
+      "rationale": "1 — Analyst tools overlap thinly; wrong product engineering responsibilities. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "hold-fs",
+      "resume_id": "h-swe-general",
+      "grade": 1,
+      "rationale": "1 — General software engineer with incomplete full-stack evidence. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "weak_practical_experience",
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "hold-fs",
+      "resume_id": "h-stuffing",
+      "grade": 0,
+      "rationale": "0 — Keyword stuffing listing React/Python/SQL without shipped product evidence. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "hard_negative",
+        "keyword_stuffing"
+      ]
+    },
+    {
+      "job_id": "hold-mlops",
+      "resume_id": "h-mlops-core",
+      "grade": 3,
+      "rationale": "3 — Five years operating Docker/Kubernetes/AWS inference fleets matches MLOps. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "hold-mlops",
+      "resume_id": "h-mlops-synonym",
+      "grade": 3,
+      "rationale": "3 — Inference services on public cloud with container orchestration phrased as synonyms. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "hold-mlops",
+      "resume_id": "h-de-core",
+      "grade": 2,
+      "rationale": "2 — Related platform/pipeline engineer with Docker/AWS; less model-serving ownership. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role",
+        "adjacent_role"
+      ]
+    },
+    {
+      "job_id": "hold-mlops",
+      "resume_id": "h-be-core",
+      "grade": 2,
+      "rationale": "2 — Backend container/cloud overlap; not dedicated inference-platform ownership. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "partial_skills",
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "hold-mlops",
+      "resume_id": "h-mlops-negation",
+      "grade": 1,
+      "rationale": "1 — Mentions Kubernetes while admitting limited orchestration and no production inference ownership. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "negation",
+        "experience_mismatch"
+      ]
+    },
+    {
+      "job_id": "hold-mlops",
+      "resume_id": "h-mle-core",
+      "grade": 1,
+      "rationale": "1 — Modeler who packages Docker jobs but does not own serving fleets. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "adjacent_role",
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "hold-mlops",
+      "resume_id": "h-mle-junior",
+      "grade": 1,
+      "rationale": "1 — Junior internship seniority mismatch for 4+ year MLOps seat. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "seniority_mismatch"
+      ]
+    },
+    {
+      "job_id": "hold-mlops",
+      "resume_id": "h-fe-only",
+      "grade": 0,
+      "rationale": "0 — Frontend-only profile; hard negative for MLOps. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "hard_negative"
+      ]
+    },
+    {
+      "job_id": "hold-de",
+      "resume_id": "h-de-core",
+      "grade": 3,
+      "rationale": "3 — Four years Python/SQL/Spark/Airflow warehouse pipelines match Data Engineer. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "hold-de",
+      "resume_id": "h-de-synonym",
+      "grade": 2,
+      "rationale": "2 — Pipelines into relational warehouses via distributed processing without Spark/AWS tokens. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords",
+        "catalog_miss_phrasing"
+      ]
+    },
+    {
+      "job_id": "hold-de",
+      "resume_id": "h-be-core",
+      "grade": 2,
+      "rationale": "2 — Adjacent backend engineer with Python/SQL/Docker; APIs rather than batch warehouses. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role",
+        "adjacent_role"
+      ]
+    },
+    {
+      "job_id": "hold-de",
+      "resume_id": "h-mlops-core",
+      "grade": 2,
+      "rationale": "2 — Related platform engineer; inference fleets rather than analytical pipeline ownership. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role"
+      ]
+    },
+    {
+      "job_id": "hold-de",
+      "resume_id": "h-ds-partial",
+      "grade": 1,
+      "rationale": "1 — Python/SQL wrangling without distributed pipeline ownership. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "hold-de",
+      "resume_id": "h-da-core",
+      "grade": 1,
+      "rationale": "1 — Reporting analyst adjacent via SQL; wrong core pipeline responsibilities. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "adjacent_role"
+      ]
+    },
+    {
+      "job_id": "hold-de",
+      "resume_id": "h-weak-practice",
+      "grade": 1,
+      "rationale": "1 — Cloud/Docker workshop familiarity without pipeline delivery evidence. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "weak_practical_experience"
+      ]
+    },
+    {
+      "job_id": "hold-de",
+      "resume_id": "h-systems",
+      "grade": 0,
+      "rationale": "0 — C++ systems work without warehouse pipelines; hard negative. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "hard_negative",
+        "irrelevant_shared_terms"
+      ]
+    },
+    {
+      "job_id": "hold-nlp",
+      "resume_id": "h-nlp-core",
+      "grade": 3,
+      "rationale": "3 — Four years PyTorch NLP with packaged inference matches the NLP Engineer seat. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "strong_match"
+      ]
+    },
+    {
+      "job_id": "hold-nlp",
+      "resume_id": "h-nlp-synonym",
+      "grade": 3,
+      "rationale": "3 — Text understanding and sequence models with inference services in synonym vocabulary. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "synonymy",
+        "role_fit_without_keywords"
+      ]
+    },
+    {
+      "job_id": "hold-nlp",
+      "resume_id": "h-mle-core",
+      "grade": 2,
+      "rationale": "2 — Related ML engineer with PyTorch; broader modeling than dedicated NLP focus. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role",
+        "adjacent_role"
+      ]
+    },
+    {
+      "job_id": "hold-nlp",
+      "resume_id": "h-aai-core",
+      "grade": 2,
+      "rationale": "2 — Applied AI integrator overlapping language features; less sequence-model ownership. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "related_role",
+        "partial_skills"
+      ]
+    },
+    {
+      "job_id": "hold-nlp",
+      "resume_id": "h-mle-notebook",
+      "grade": 1,
+      "rationale": "1 — Names NLP/PyTorch tools but lacks production packaging (negation/experience gap). Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "negation",
+        "experience_mismatch"
+      ]
+    },
+    {
+      "job_id": "hold-nlp",
+      "resume_id": "h-ds-core",
+      "grade": 1,
+      "rationale": "1 — Tabular experimentation rather than text understanding systems. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "adjacent_role",
+        "skill_overlap_without_role_fit"
+      ]
+    },
+    {
+      "job_id": "hold-nlp",
+      "resume_id": "h-be-junior",
+      "grade": 1,
+      "rationale": "1 — Junior backend internship; seniority and domain mismatch. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "seniority_mismatch"
+      ]
+    },
+    {
+      "job_id": "hold-nlp",
+      "resume_id": "h-stuffing",
+      "grade": 0,
+      "rationale": "0 — Keyword stuffing including NLP tokens without text-system delivery evidence. Manually specified synthetic relevance judgment.",
+      "case_tags": [
+        "hard_negative",
+        "keyword_stuffing"
+      ]
+    }
+  ]
+}

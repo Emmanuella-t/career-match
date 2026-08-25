@@ -6,6 +6,7 @@ Generated artifacts live here.
 python scripts/audit_legacy_dataset.py
 python scripts/evaluate_baseline.py
 python scripts/evaluate_benchmark_v0_2.py
+python scripts/evaluate_holdout_v0_3.py
 ```
 
 - `legacy_dataset_audit.md` — encoding and schema facts from the CSV
@@ -13,8 +14,12 @@ python scripts/evaluate_benchmark_v0_2.py
 - `benchmark_v0_2_evaluation.md` — the same untuned baseline on v0.2
 - `semantic_matcher_v0_1_evaluation.md` — MiniLM vs lexical on v0.2
 - `benchmark_v0_2_label_review.md` — compact list of all 56 construction
-  labels for later owner inspection (not marked as human-reviewed)
+  labels for later owner inspection (not marked as independently reviewed)
+- `holdout_benchmark_v0_3_snapshot.md` — frozen pre-hybrid holdout metrics
+- `holdout_benchmark_v0_3_label_review.md` — compact list of all 72 holdout
+  judgments (awaiting/available for manual review)
 
-These snapshots do not claim production matching quality. v0.2 is the
-comparison target; v0.1 is only a smoke test. v0.2 labels are development
-targets, not independently validated ground truth.
+These snapshots do not claim production matching quality. v0.2 is for
+development/error analysis; v0.3 is the frozen holdout; v0.1 is only a
+smoke test. Labels are manually specified synthetic relevance judgments,
+not independently validated ground truth.
