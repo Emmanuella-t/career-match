@@ -1,21 +1,22 @@
 # Model card — Career Match
 
-**Status:** Career Match has two independent development matchers:
-Baseline Matcher v0.1 (lexical) and Semantic Matcher v0.1 (MiniLM
-embeddings). There is still **no production matching model**, **no
-hybrid**, and **no calibrated hiring score**.
+**Status:** Career Match has three development matchers:
 
-This card describes current artifacts honestly. Later semantic models must
-be compared on the same evaluation framework before they replace this
-baseline.
+Baseline Matcher v0.1 → Semantic Matcher v0.1 → Hybrid Matcher v0.1
+
+There is still **no production matching model** and **no calibrated hiring
+score**. Hybrid weights were frozen on development benchmark v0.2 and
+evaluated once on holdout v0.3 without retuning.
+
+This card describes current artifacts honestly.
 
 ## Model details
 
 | Field | Value |
 | --- | --- |
-| Model name | Baseline Matcher v0.1; Semantic Matcher v0.1 (independent) |
+| Model name | Baseline v0.1; Semantic v0.1; Hybrid v0.1 |
 | Task | resume-to-job relevance scoring |
-| Implemented now | lexical TF-IDF + skill overlap; standalone MiniLM cosine |
+| Implemented now | lexical TF-IDF + skill overlap; MiniLM cosine; evidence-aware hybrid mix |
 | Score type | development relevance / similarity on 0–100, **not** a hiring probability |
 | Previous prototype | One-vs-rest k-nearest neighbors **category** classifier in `legacy/Resume_Screening.ipynb` |
 | Owners | Emmanuella Turkson |
@@ -69,9 +70,8 @@ explanation.
 ### Why this baseline exists
 
 It remains the transparent lexical comparison point. Semantic Matcher v0.1
-was measured on the same v0.2 benchmark without retuning these weights.
-A hybrid is **not** implemented until each approach is understood on its
-own.
+and Hybrid Matcher v0.1 are measured against it without retuning these
+lexical weights.
 
 ## Semantic Matcher v0.1
 
@@ -137,6 +137,69 @@ score ranges still overlap.
 To measure whether sentence embeddings help the failure modes of TF-IDF
 on the **same** labels, before anyone builds a hybrid.
 
+## Hybrid Matcher v0.1
+
+Weighted mix of three observable channels:
+
+1. **Semantic score** — MiniLM cosine (same as Semantic Matcher v0.1)
+2. **TF-IDF score** — pair-fit lexical cosine
+3. **Evidence-aware skill coverage** — job catalog coverage with:
+   - narrative negation zeroing (for example `No production Docker`)
+   - keyword-list-only discount (skills appearing only under `Skills:`)
+   - stuffing-likely penalty (≥16 catalog skills → skill channel ×0.25 and
+     overall ×0.72)
+
+### Chosen weights (frozen on v0.2)
+
+`overall = 0.60 * semantic + 0.20 * tfidf + 0.20 * evidence_skill`
+
+Selected with `scripts/select_hybrid_config.py` using pairwise accuracy as
+the primary metric and NDCG@3 as secondary, rejecting configs that put MLE
+keyword stuffing at rank #1. **Holdout v0.3 was not used for tuning.**
+
+### What the score means
+
+A **hybrid relevance score** on 0–100 with separately reported
+`semantic_similarity`, `tfidf_similarity`, `skill_overlap_score`,
+`matched_skills`, and `missing_skills`. Evidence strings record negated and
+weak skills.
+
+### What the score does not mean
+
+- Not a hiring, interview, or acceptance probability
+- Not production matching quality
+- Not a claim that hybrid should replace every standalone scorer in a UI
+
+### Development metrics (v0.2)
+
+| Metric | Lexical | Semantic | Hybrid |
+| --- | ---: | ---: | ---: |
+| Precision@1 | 0.875 | 1.000 | 1.000 |
+| Precision@3 | 0.667 | 0.792 | 0.875 |
+| NDCG@3 | 0.849 | 0.900 | 0.948 |
+| Pairwise | 0.709 | 0.865 | 0.925 |
+
+### Frozen holdout metrics (v0.3)
+
+| Metric | Lexical | Semantic | Hybrid |
+| --- | ---: | ---: | ---: |
+| Precision@1 | 1.000 | 1.000 | 1.000 |
+| Precision@3 | 0.630 | 0.778 | 0.778 |
+| NDCG@3 | 0.739 | 0.892 | 0.848 |
+| Pairwise | 0.573 | 0.804 | 0.824 |
+
+Reports: `reports/hybrid_matcher_v0_1_development.md`,
+`reports/hybrid_matcher_v0_1_holdout.md`.
+
+### Known limitations
+
+- Negation is phrase-window heuristics, not full linguistic analysis
+- Stuffing detection uses catalog-skill count thresholds
+- Hybrid can trail pure semantic NDCG on holdout while improving pairwise
+- Adjacent role families still confuse MiniLM
+- Fairness: no demographic audit has been run; do not deploy for live
+  ranking of people
+
 ### Evaluation fixtures
 
 **v0.1** (`career-match-dev-eval-v0.1`) is a 16-pair **sanity-check
@@ -169,7 +232,7 @@ and useful for development.
 
 **v0.3** (`career-match-holdout-benchmark-v0.3`) is the **frozen holdout
 benchmark** for controlled comparison of Lexical Baseline Matcher v0.1,
-Semantic Matcher v0.1, and a future Hybrid Matcher.
+Semantic Matcher v0.1, and Hybrid Matcher v0.1.
 
 - 9 synthetic jobs, 29 synthetic resumes, 72 pairs
 - Role families include Machine Learning Engineer, Applied AI Engineer,
@@ -184,6 +247,7 @@ Semantic Matcher v0.1, and a future Hybrid Matcher.
   frozen during that milestone (SHA-256 checksum in
   `data/evaluation/holdout_benchmark_v0_3.manifest.json`)
 - Pre-hybrid snapshot: `reports/holdout_benchmark_v0_3_snapshot.md`
+- Hybrid holdout snapshot: `reports/hybrid_matcher_v0_1_holdout.md`
 
 Do not tune matchers against v0.3. v0.2 remains the development set.
 
@@ -293,13 +357,10 @@ human review path first.
 
 ## Next milestone
 
-1. Keep both standalone matchers frozen as comparison points.
+1. Keep lexical, semantic, and hybrid matchers frozen as comparison points.
 2. Keep holdout v0.3 frozen; do not tune against it.
-3. Only consider a **hybrid** after it is shown to beat both systems on
-   development (v0.2) analysis and then measured on holdout (v0.3),
-   including stuffing, negation, and synonym ranking.
-4. Do not treat MiniLM mean-metric gains as a reason to drop the lexical
-   baseline or to ship a production ranker.
+3. Investigate remaining negation and synonym gaps without retuning on holdout.
+4. Do not treat metric gains as a reason to ship a production ranker.
 
 ## Citation / provenance
 

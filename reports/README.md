@@ -18,6 +18,9 @@ python scripts/evaluate_holdout_v0_3.py
 - `holdout_benchmark_v0_3_snapshot.md` — frozen pre-hybrid holdout metrics
 - `holdout_benchmark_v0_3_label_review.md` — compact list of all 72 holdout
   judgments (awaiting/available for manual review)
+- `hybrid_config_selection_v0_2.json` — v0.2 weight grid and chosen config
+- `hybrid_matcher_v0_1_development.md` — hybrid vs lexical/semantic on v0.2
+- `hybrid_matcher_v0_1_holdout.md` — single frozen holdout comparison
 
 These snapshots do not claim production matching quality. v0.2 is for
 development/error analysis; v0.3 is the frozen holdout; v0.1 is only a
