@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { BrandLogoCompact } from "@/components/brand-mark";
+
 const links = [
   { href: "/", label: "Overview" },
   { href: "/match", label: "Match" },
@@ -12,9 +14,10 @@ export function SiteHeader() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <Link
           href="/"
-          className="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-tight text-primary"
+          className="inline-flex w-fit items-center rounded-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          aria-label="Career Match home"
         >
-          Career Match
+          <BrandLogoCompact priority />
         </Link>
         <nav
           className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground"
