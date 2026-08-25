@@ -140,24 +140,24 @@ on the **same** labels, before anyone builds a hybrid.
 ### Evaluation fixtures
 
 **v0.1** (`career-match-dev-eval-v0.1`) is a 16-pair **sanity-check
-development fixture**. It is too easy for model comparison: the lexical
-baseline ranks constructed strong matches above mismatches with perfect
-top-k metrics on that set. Keep it. Do not treat those metrics as a
-benchmark of matching quality.
+fixture**. It is too easy for model comparison: the lexical baseline ranks
+constructed strong matches above mismatches with perfect top-k metrics on
+that set. Keep it. Do not treat those metrics as a benchmark of matching
+quality.
 
-**v0.2** (`career-match-dev-benchmark-v0.2`) is the harder **development
-evaluation benchmark** and the comparison target for this baseline, a
-future sentence-embedding model, and a future hybrid ranker.
+**v0.2** (`career-match-dev-benchmark-v0.2`) is the **development /
+error-analysis benchmark** used while iterating on matchers and inspecting
+failure modes.
 
 - 8 synthetic jobs, 24 synthetic resumes, 56 pairs with manually
   specified synthetic relevance judgments
-- Overlapping families: Machine Learning Engineer, Data Scientist, Data
-  Analyst, Backend Engineer, Frontend Engineer, Full-Stack Engineer,
+- Overlapping families including Machine Learning Engineer, Data Scientist,
+  Data Analyst, Backend Engineer, Frontend Engineer, Full-Stack Engineer,
   MLOps Engineer, Data Engineer
 - Hard cases: synonymy, negation, keyword stuffing, related-role overlap,
   seniority mismatch, catalog misses
-- Grades 0–3 with rationales are **benchmark-construction labels**
-  (development targets), not independently validated ground truth
+- Grades 0–3 with rationales are **benchmark-construction labels**, not
+  independently validated ground truth
 - No independent annotator agreement
 - Not real candidate data, not production hiring labels, and **not** a
   production benchmark
@@ -165,7 +165,27 @@ future sentence-embedding model, and a future hybrid ranker.
 
 Measured baseline results on v0.2 (untuned v0.1 weights) are in
 `reports/benchmark_v0_2_evaluation.md`. Poor numbers on v0.2 are expected
-and useful.
+and useful for development.
+
+**v0.3** (`career-match-holdout-benchmark-v0.3`) is the **frozen holdout
+benchmark** for controlled comparison of Lexical Baseline Matcher v0.1,
+Semantic Matcher v0.1, and a future Hybrid Matcher.
+
+- 9 synthetic jobs, 29 synthetic resumes, 72 pairs
+- Role families include Machine Learning Engineer, Applied AI Engineer,
+  Data Scientist, Data Analyst, Backend Engineer, Full-Stack Engineer,
+  MLOps Engineer, Data Engineer, and NLP Engineer
+- Hard cases include closely related roles, semantic synonyms, partial
+  skills, keyword stuffing, negation, weak practical experience, seniority
+  mismatch, and adjacent-role experience
+- Synthetic only; no real candidate data; no real hiring outcomes; no
+  independent annotator agreement; **not** production ground truth
+- Created **before** hybrid-matcher development or tuning and should remain
+  frozen during that milestone (SHA-256 checksum in
+  `data/evaluation/holdout_benchmark_v0_3.manifest.json`)
+- Pre-hybrid snapshot: `reports/holdout_benchmark_v0_3_snapshot.md`
+
+Do not tune matchers against v0.3. v0.2 remains the development set.
 
 ### Known failure modes
 
@@ -215,14 +235,17 @@ Matcher v0.1 is **not trained** on this CSV.
 
 ## Evaluation
 
-Comparison target: **development benchmark v0.2**. Lexical snapshot:
+Development comparison target: **benchmark v0.2**. Lexical snapshot:
 `reports/benchmark_v0_2_evaluation.md`. Semantic comparison:
 `reports/semantic_matcher_v0_1_evaluation.md`.
 
-Untuned Baseline Matcher v0.1 (mean over 8 jobs): Precision@1 0.875,
-NDCG@3 0.849, pairwise 0.709.
+Frozen holdout: **benchmark v0.3**. Pre-hybrid snapshot:
+`reports/holdout_benchmark_v0_3_snapshot.md`. Do not tune against holdout.
 
-Standalone Semantic Matcher v0.1 on the **same** labels: Precision@1
+Untuned Baseline Matcher v0.1 on v0.2 (mean over 8 jobs): Precision@1
+0.875, NDCG@3 0.849, pairwise 0.709.
+
+Standalone Semantic Matcher v0.1 on the **same** v0.2 labels: Precision@1
 1.000, NDCG@3 0.900, pairwise 0.865. Mean metrics improved; see the model
 section above for stuffing, negation, and the Data Engineer NDCG drop.
 
@@ -246,10 +269,10 @@ here.
 - Intern vs 4+ year mismatches are weakly penalized if tools are named
 - Catalog misses include PostgreSQL, Spark, Airflow, and most paraphrases
 
-Future models, including any hybrid, must be evaluated against **the same
-v0.2 benchmark** with the same grades. Do not retune lexical weights just
-to inflate these numbers. Do not treat MiniLM mean gains as production
-readiness.
+Future models, including any hybrid, must be evaluated on **v0.2** for
+development analysis and on frozen **v0.3** for holdout comparison with
+the same grade definitions. Do not retune lexical weights just to inflate
+these numbers. Do not treat MiniLM mean gains as production readiness.
 
 ## Limitations and risks
 
@@ -271,9 +294,11 @@ human review path first.
 ## Next milestone
 
 1. Keep both standalone matchers frozen as comparison points.
-2. Only consider a **hybrid** after it is shown to beat both systems on
-   v0.2, including stuffing, negation, and synonym ranking.
-3. Do not treat MiniLM mean-metric gains as a reason to drop the lexical
+2. Keep holdout v0.3 frozen; do not tune against it.
+3. Only consider a **hybrid** after it is shown to beat both systems on
+   development (v0.2) analysis and then measured on holdout (v0.3),
+   including stuffing, negation, and synonym ranking.
+4. Do not treat MiniLM mean-metric gains as a reason to drop the lexical
    baseline or to ship a production ranker.
 
 ## Citation / provenance

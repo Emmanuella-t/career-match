@@ -67,9 +67,15 @@ Do not add LLMs, RAG, or a serving API in this layer.
 - **Development evaluation fixture (v0.1):** `data/evaluation/dev_relevance_fixture.json`
   (16-pair sanity check; not a production benchmark).
 - **Development evaluation benchmark (v0.2):** `data/evaluation/dev_benchmark_v0_2.json`
-  (56-pair harder set for model comparison). Synthetic; constructed for
-  controlled development evaluation. Labels are benchmark-construction
-  development targets, not independently validated ground truth.
+  (56-pair harder set for error analysis and model development). Synthetic;
+  constructed for controlled development evaluation. Labels are
+  benchmark-construction development targets, not independently validated
+  ground truth.
+- **Frozen holdout benchmark (v0.3):** `data/evaluation/holdout_benchmark_v0_3.json`
+  (72-pair holdout for pre-hybrid and later hybrid comparison). Synthetic;
+  no real candidate data; not production ground truth. Created before
+  hybrid-matcher development and frozen via SHA-256 manifest. Do not tune
+  against v0.3.
 - **Audit:** `python scripts/audit_legacy_dataset.py` writes
   `reports/legacy_dataset_audit.md`.
 
@@ -81,8 +87,9 @@ ground truth.
 
 `experiments/` remains reserved for notebooks. The first measured
 baseline lives in the matching package and is evaluated by
-`scripts/evaluate_benchmark_v0_2.py` (lexical v0.2) and
-`scripts/compare_matchers.py` (lexical vs semantic on v0.2). Nothing in
+`scripts/evaluate_benchmark_v0_2.py` (lexical v0.2),
+`scripts/compare_matchers.py` (lexical vs semantic on v0.2), and
+`scripts/evaluate_holdout_v0_3.py` (frozen holdout snapshot). Nothing in
 `experiments/` is production.
 
 ## Product prototype
