@@ -1,8 +1,12 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useId, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
+import {
+  MatchEmptyState,
+  MatchLoadingState,
+  MatchResults,
+} from "@/components/match-results";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,153 +17,203 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { overlapSkills } from "@/lib/skills";
+import {
+  MatchApiError,
+  type MatcherName,
+  type MatchResponse,
+  matchResumeToJob,
+} from "@/lib/api";
 
-const SAMPLE_RESUME = `Data analyst with 4 years of experience. Skills: Python, pandas, SQL, Git, and Linux. Built internal dashboards and documented ETL checks.`;
+const SAMPLE_RESUME = `Jordan Lee
+Machine Learning Engineer
 
-const SAMPLE_JOB = `We are hiring a data analyst. Required: Python, SQL, and pandas. Nice to have: Docker and AWS.`;
+Experience
+- Built recommendation and ranking features with Python, scikit-learn, and pandas.
+- Deployed FastAPI services with Docker and monitored jobs on Linux.
+- Collaborated with data scientists on SQL feature pipelines and Git workflows.
 
-type Result = ReturnType<typeof overlapSkills>;
+Skills
+Python, pandas, scikit-learn, SQL, Docker, FastAPI, Git, Linux`;
+
+const SAMPLE_JOB = `Machine Learning Engineer
+
+We are looking for an engineer who can ship reliable ML features.
+
+Required:
+- Strong Python and scikit-learn experience
+- Comfort with SQL and pandas for feature work
+- Experience deploying services with Docker
+
+Nice to have:
+- FastAPI, Git, and Linux production support`;
+
+const MATCHER_OPTIONS: { value: MatcherName; label: string }[] = [
+  { value: "semantic", label: "Semantic" },
+  { value: "hybrid", label: "Hybrid" },
+  { value: "lexical", label: "Lexical baseline" },
+];
 
 export function MatchForm() {
+  const formId = useId();
+  const resumeId = `${formId}-resume`;
+  const jobId = `${formId}-job`;
+  const matcherId = `${formId}-matcher`;
+
   const [resume, setResume] = useState("");
   const [job, setJob] = useState("");
+  const [matcher, setMatcher] = useState<MatcherName>("semantic");
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<Result | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [result, setResult] = useState<MatchResponse | null>(null);
+  const [pending, setPending] = useState(false);
 
-  const isEmpty = resume.trim() === "" && job.trim() === "";
+  async function runAnalyze() {
+    if (pending) return;
 
-  const summary = useMemo(() => {
-    if (!result) return null;
-    const totalJob = result.shared.length + result.jobOnly.length;
-    return { totalJob };
-  }, [result]);
-
-  function runCompare() {
     setError(null);
+
     if (!resume.trim() || !job.trim()) {
       setResult(null);
-      setError("Paste both a resume and a job description to compare skill mentions.");
+      setError("Paste both a resume and a job description to analyze the match.");
       return;
     }
-    startTransition(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 350));
-      setResult(overlapSkills(resume, job));
-    });
+
+    setPending(true);
+    setResult(null);
+
+    try {
+      const response = await matchResumeToJob({
+        resume_text: resume,
+        job_description: job,
+        matcher,
+      });
+      setResult(response);
+    } catch (err) {
+      setResult(null);
+      if (err instanceof MatchApiError) {
+        setError(err.message);
+      } else {
+        setError(
+          "Career Match couldn't complete the analysis. Please try again.",
+        );
+      }
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)]">
-      <Card>
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+      <Card className="border-border/80 shadow-none">
         <CardHeader>
-          <CardTitle>Skill overlap prototype</CardTitle>
+          <CardTitle className="text-2xl tracking-tight">Analyze a match</CardTitle>
           <CardDescription>
-            This screen uses the same small lexicon as the Python package. It
-            does not call a trained matcher and does not produce a hiring score.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="resume">Resume text</Label>
-            <Textarea
-              id="resume"
-              value={resume}
-              onChange={(event) => setResume(event.target.value)}
-              placeholder="Paste resume text…"
-              className="min-h-36"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="job">Job description</Label>
-            <Textarea
-              id="job"
-              value={job}
-              onChange={(event) => setJob(event.target.value)}
-              placeholder="Paste the job description…"
-              className="min-h-36"
-            />
-          </div>
-          {error ? (
-            <p className="text-sm text-destructive" role="alert">
-              {error}
-            </p>
-          ) : null}
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Button onClick={runCompare} disabled={pending}>
-              {pending ? "Comparing mentions…" : "Compare skill mentions"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setResume(SAMPLE_RESUME);
-                setJob(SAMPLE_JOB);
-                setError(null);
-                setResult(null);
-              }}
-            >
-              Load sample pair
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Result</CardTitle>
-          <CardDescription>
-            Shared mentions are overlaps in a fixed word list, not evidence of
-            job performance.
+            Paste resume text and a job description. Career Match returns a
+            relevance score with skill evidence from the selected matcher.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {pending ? (
-            <p className="text-sm text-muted-foreground">Scanning both texts…</p>
-          ) : result ? (
-            <div className="space-y-4">
-              {summary && summary.totalJob === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  The job text did not mention any skills from the current
-                  lexicon. That is a coverage gap in the prototype list, not a
-                  candidate score.
+          <form
+            className="space-y-5"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void runAnalyze();
+            }}
+          >
+            <div className="grid gap-5 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor={resumeId}>Resume text</Label>
+                <Textarea
+                  id={resumeId}
+                  value={resume}
+                  onChange={(event) => setResume(event.target.value)}
+                  placeholder="Paste the full resume text…"
+                  className="min-h-56 resize-y bg-card md:min-h-72"
+                  disabled={pending}
+                  aria-invalid={Boolean(error) && !resume.trim()}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Paste text for this milestone. PDF/DOCX upload is not supported
+                  yet.
                 </p>
-              ) : null}
-              <SkillGroup title="Mentioned in both" skills={result.shared} />
-              <SkillGroup title="Resume only" skills={result.resumeOnly} />
-              <SkillGroup title="Job only" skills={result.jobOnly} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={jobId}>Job description</Label>
+                <Textarea
+                  id={jobId}
+                  value={job}
+                  onChange={(event) => setJob(event.target.value)}
+                  placeholder="Paste the full job posting…"
+                  className="min-h-56 resize-y bg-card md:min-h-72"
+                  disabled={pending}
+                  aria-invalid={Boolean(error) && !job.trim()}
+                />
+              </div>
             </div>
-          ) : isEmpty ? (
-            <p className="text-sm text-muted-foreground">
-              Nothing to compare yet. Paste a resume and a job description, or
-              load the sample pair.
-            </p>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Ready when both fields are filled.
-            </p>
-          )}
+
+            <div className="space-y-2">
+              <Label htmlFor={matcherId} className="text-xs text-muted-foreground">
+                Matcher (advanced)
+              </Label>
+              <select
+                id={matcherId}
+                value={matcher}
+                onChange={(event) =>
+                  setMatcher(event.target.value as MatcherName)
+                }
+                disabled={pending}
+                className="h-9 w-full max-w-xs rounded-lg border border-input bg-card px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {MATCHER_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {error ? (
+              <p className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+                {error}
+              </p>
+            ) : null}
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Button
+                type="submit"
+                size="lg"
+                disabled={pending}
+                className="bg-action text-action-foreground hover:bg-action/90"
+                aria-busy={pending}
+              >
+                {pending ? "Analyzing…" : "Analyze Match"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={pending}
+                onClick={() => {
+                  setResume(SAMPLE_RESUME);
+                  setJob(SAMPLE_JOB);
+                  setError(null);
+                  setResult(null);
+                }}
+              >
+                Load sample pair
+              </Button>
+            </div>
+          </form>
         </CardContent>
       </Card>
-    </div>
-  );
-}
 
-function SkillGroup({ title, skills }: { title: string; skills: string[] }) {
-  return (
-    <div className="space-y-2">
-      <h3 className="text-sm font-medium">{title}</h3>
-      {skills.length === 0 ? (
-        <p className="text-sm text-muted-foreground">None in this list.</p>
-      ) : (
-        <div className="flex flex-wrap gap-2">
-          {skills.map((skill) => (
-            <Badge key={skill} variant="secondary">
-              {skill}
-            </Badge>
-          ))}
-        </div>
-      )}
+      <div className="min-w-0">
+        {pending ? (
+          <MatchLoadingState />
+        ) : result ? (
+          <MatchResults result={result} />
+        ) : (
+          <MatchEmptyState />
+        )}
+      </div>
     </div>
   );
 }
