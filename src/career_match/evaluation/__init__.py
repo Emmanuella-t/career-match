@@ -11,6 +11,7 @@ from career_match.evaluation.compare import comparison_rows
 from career_match.evaluation.fixture import load_evaluation_fixture
 from career_match.evaluation.harness import evaluate_baseline
 from career_match.evaluation.holdout_benchmark import load_holdout_benchmark
+from career_match.evaluation.hybrid_harness import evaluate_hybrid_benchmark
 from career_match.evaluation.metrics import f1_score, precision, recall
 from career_match.evaluation.ranking import (
     ndcg_at_k,
@@ -24,6 +25,7 @@ __all__ = [
     "comparison_rows",
     "evaluate_baseline",
     "evaluate_benchmark_v0_2",
+    "evaluate_hybrid_benchmark",
     "evaluate_semantic_benchmark",
     "f1_score",
     "load_benchmark",

@@ -17,8 +17,8 @@ product UI, and so a future serving API can sit between them.
                      │ package import
 ┌────────────────────┴────────────────────────┐
 │  ML  —  `src/career_match/`                 │
-│  Lexical baseline and standalone semantic   │
-│  matcher, plus evaluation harness.          │
+│  Lexical, semantic, and hybrid matchers,    │
+│  plus evaluation harness.                   │
 └─────────────────────────────────────────────┘
 ```
 
@@ -28,9 +28,9 @@ product UI, and so a future serving API can sit between them.
 | --- | --- | --- |
 | `career_match.data` | Load, validate, and audit the legacy CSV | Implemented |
 | `career_match.parsing` | Deterministic text normalization | Implemented |
-| `career_match.extraction` | Lexicon skill spans (32 canonical skills) | Implemented (not a model) |
-| `career_match.matching` | Matcher protocol + lexical baseline + **standalone** semantic matcher | Implemented (no hybrid) |
-| `career_match.evaluation` | Classification helpers + ranking metrics + fixture harness | Implemented |
+| `career_match.extraction` | Lexicon skill spans + evidence/negation heuristics (32 canonical skills) | Implemented (not a model) |
+| `career_match.matching` | Matcher protocol + lexical + semantic + **hybrid** matchers | Implemented (not production) |
+| `career_match.evaluation` | Classification helpers + ranking metrics + fixture/holdout harness | Implemented |
 
 `BaselineMatcher` is the first matching-layer implementation: TF-IDF cosine
 similarity plus catalog skill overlap, combined with named provisional
@@ -42,21 +42,28 @@ for callers that must not silently pick up an unmeasured heuristic.
 
 ## Matching layer
 
-Two **independent** scorers. There is **no hybrid** of TF-IDF, skill
-overlap, and embeddings in this repository.
+Three **independent or combined** scorers. Hybrid mixes the channels with
+weights frozen on v0.2; it is still not a production hiring model.
 
 ```
 resume ─┐
         ├─ TF-IDF cosine + catalog skill overlap → Baseline Matcher v0.1
 job ────┤
-        └─ MiniLM embedding cosine              → Semantic Matcher v0.1
+        ├─ MiniLM embedding cosine              → Semantic Matcher v0.1
+        └─ semantic + TF-IDF + evidence skills  → Hybrid Matcher v0.1
+              (negation / keyword-list / stuffing heuristics)
 ```
 
 - Lexical config: `career_match.matching.config` (`TFIDF_WEIGHT=0.55`,
   `SKILL_OVERLAP_WEIGHT=0.45`). Do not retune these to chase v0.2.
 - Semantic config: `career_match.matching.semantic_config`
   (`sentence-transformers/all-MiniLM-L6-v2`).
+- Hybrid config: `career_match.matching.hybrid_config`
+  (`SEMANTIC_WEIGHT=0.60`, `TFIDF_WEIGHT=0.20`, `SKILL_WEIGHT=0.20`),
+  frozen on v0.2; **not** tuned on holdout v0.3.
+- Evidence/negation: `career_match.extraction.evidence`
 - Compare: `python scripts/compare_matchers.py`
+- Hybrid eval: `python scripts/evaluate_hybrid.py --all`
 - Lexical-only eval: `python scripts/evaluate_benchmark_v0_2.py`
 
 Do not add LLMs, RAG, or a serving API in this layer.
@@ -85,11 +92,12 @@ ground truth.
 
 ## Experiments
 
-`experiments/` remains reserved for notebooks. The first measured
-baseline lives in the matching package and is evaluated by
+`experiments/` remains reserved for notebooks. Measured matchers live in
+the matching package and are evaluated by
 `scripts/evaluate_benchmark_v0_2.py` (lexical v0.2),
-`scripts/compare_matchers.py` (lexical vs semantic on v0.2), and
-`scripts/evaluate_holdout_v0_3.py` (frozen holdout snapshot). Nothing in
+`scripts/compare_matchers.py` (lexical vs semantic on v0.2),
+`scripts/evaluate_holdout_v0_3.py` (pre-hybrid holdout snapshot), and
+`scripts/evaluate_hybrid.py` (hybrid development + holdout). Nothing in
 `experiments/` is production.
 
 ## Product prototype

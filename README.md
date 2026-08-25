@@ -12,35 +12,39 @@ Repository: [https://github.com/Emmanuella-t/career-match.git](https://github.co
 
 ## Current ML status
 
-**Baseline Matcher v0.1** scores one resume against one job description
-using TF-IDF cosine similarity and catalog skill overlap. The result is a
-0–100 **baseline relevance score**, not a hiring probability and not a
-production model.
+Career Match has three **development** matchers. Scores are 0–100 relevance
+signals, not hiring probabilities and not production models.
+
+| Matcher | What it combines |
+| --- | --- |
+| Lexical Baseline v0.1 | TF-IDF + catalog skill overlap |
+| Semantic Matcher v0.1 | MiniLM sentence-embedding cosine |
+| Hybrid Matcher v0.1 | semantic + TF-IDF + evidence-aware skills (negation / stuffing heuristics) |
 
 Career Match separates **development evaluation** (v0.2) from a **frozen
-holdout** (v0.3) before any hybrid-matcher work. Two **standalone**
-matchers are compared on v0.2 for error analysis; v0.3 is reserved for
-pre-hybrid holdout snapshots and later hybrid comparison.
+holdout** (v0.3). Hybrid weights were chosen on v0.2 only.
 
-| Matcher (on v0.2 development set) | Precision@1 | NDCG@3 | Pairwise |
-| --- | ---: | ---: | ---: |
-| Lexical Baseline v0.1 (TF-IDF + skill overlap) | 0.875 | 0.849 | 0.709 |
-| Semantic Matcher v0.1 (MiniLM cosine) | 1.000 | 0.900 | 0.865 |
+### Frozen synthetic development holdout results (v0.3)
 
-These are **development-benchmark** results, not production quality.
-Keyword stuffing and negation still fool both systems in different ways.
-There is **no hybrid** of the two scores yet.
+| Matcher | Precision@1 | Precision@3 | NDCG@3 | Pairwise |
+| --- | ---: | ---: | ---: | ---: |
+| Lexical Baseline v0.1 | 1.000 | 0.630 | 0.739 | 0.573 |
+| Semantic Matcher v0.1 | 1.000 | 0.778 | 0.892 | 0.804 |
+| Hybrid Matcher v0.1 | 1.000 | 0.778 | 0.848 | 0.824 |
+
+These are **frozen synthetic holdout** results, not production quality.
+Hybrid improved pairwise vs semantic on v0.3 while NDCG@3 trailed semantic;
+that trade-off is documented in `reports/hybrid_matcher_v0_1_holdout.md`.
 
 The older 16-pair v0.1 fixture is a sanity check only. Legacy notebook
 category labels are not matching ground truth.
 
 ## ML experimentation
 
-Lexical and semantic matchers are measured independently on v0.2
-(`scripts/compare_matchers.py`) and recorded once on frozen holdout v0.3
-(`scripts/evaluate_holdout_v0_3.py`). Do not tune lexical weights against
-v0.2 or v0.3. Sentence embeddings require `pip install -e ".[semantic]"`
-or `.[dev]`. Importing `career_match` does not download MiniLM.
+Compare matchers on v0.2 with `scripts/compare_matchers.py` and
+`scripts/evaluate_hybrid.py`. Do not tune against v0.3. Sentence embeddings
+require `pip install -e ".[semantic]"` or `.[dev]`. Importing `career_match`
+does not download MiniLM.
 
 ## Evaluation benchmarks
 
@@ -94,6 +98,7 @@ python scripts/evaluate_baseline.py
 python scripts/evaluate_benchmark_v0_2.py
 python scripts/compare_matchers.py
 python scripts/evaluate_holdout_v0_3.py
+python scripts/evaluate_hybrid.py --all
 ```
 
 Installation uses `pyproject.toml`. There is no root `requirements.txt`.
