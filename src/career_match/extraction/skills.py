@@ -1,7 +1,8 @@
 """Rule-based skill extraction.
 
-This is a foundation helper for tests and dataset inspection. It is not a
-production NER model and must not be reported as matching performance.
+This is a small, explicit catalog for the lexical baseline and for tests.
+It is not a production NER model and must not be reported as matching
+performance. Keep the list modest so misses stay inspectable.
 """
 
 from __future__ import annotations
@@ -11,23 +12,41 @@ import re
 from career_match.core.types import ExtractedSkill
 from career_match.parsing.text import normalize_text
 
-# Canonical name -> alternative surface forms. Keep the list small and explicit.
+# Canonical name -> alternative surface forms. Order of this dict is the
+# catalog order used when first-seen position is equal.
 SKILL_LEXICON: dict[str, tuple[str, ...]] = {
     "python": ("python",),
     "java": ("java",),
     "javascript": ("javascript", "js"),
+    "typescript": ("typescript",),
     "sql": ("sql",),
+    "c++": ("c++", "c plus plus"),
+    "c#": ("c#", "csharp", "c sharp"),
+    ".net": (".net", "dotnet", "dot net"),
+    "react": ("react",),
+    "next.js": ("next.js", "nextjs", "next js"),
+    "fastapi": ("fastapi", "fast api"),
+    "flask": ("flask",),
+    "django": ("django",),
+    "pytorch": ("pytorch",),
+    "tensorflow": ("tensorflow",),
+    "scikit-learn": ("scikit-learn", "sklearn", "scikit learn"),
     "pandas": ("pandas",),
     "numpy": ("numpy",),
-    "scikit-learn": ("scikit-learn", "sklearn"),
-    "tensorflow": ("tensorflow",),
-    "react": ("react",),
-    "docker": ("docker",),
     "aws": ("aws", "amazon web services"),
+    "azure": ("azure",),
+    "gcp": ("gcp", "google cloud platform", "google cloud"),
+    "docker": ("docker",),
+    "kubernetes": ("kubernetes", "k8s"),
     "git": ("git",),
+    "linux": ("linux",),
+    "machine learning": ("machine learning",),
+    "deep learning": ("deep learning",),
+    "nlp": ("nlp", "natural language processing"),
+    "computer vision": ("computer vision",),
+    "rest apis": ("rest apis", "rest api", "restful api", "restful apis"),
     "html": ("html",),
     "css": ("css",),
-    "linux": ("linux",),
 }
 
 
@@ -59,3 +78,8 @@ def extract_skills(text: str) -> tuple[ExtractedSkill, ...]:
                 break
     found.sort(key=lambda skill: skill.start)
     return tuple(found)
+
+
+def extract_skill_names(text: str) -> tuple[str, ...]:
+    """Return canonical skill names in first-seen order."""
+    return tuple(skill.name for skill in extract_skills(text))

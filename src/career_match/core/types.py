@@ -29,14 +29,30 @@ class ExtractedSkill:
 
 @dataclass(frozen=True)
 class MatchResult:
-    """Placeholder result for a future explainable matcher.
+    """Explainable baseline relevance result for one resume and one job.
 
-    ``score`` is reserved for a calibrated match score in ``[0, 1]``.
-    ``evidence`` will hold human-readable reasons. Neither is produced by a
-    production model today.
+    All numeric scores use a 0–100 scale. They are a **baseline relevance
+    score**, not a calibrated probability that someone should be hired.
     """
 
-    score: float
-    evidence: tuple[str, ...]
-    skills_in_resume: tuple[str, ...]
-    skills_in_job: tuple[str, ...]
+    overall_score: float
+    tfidf_similarity: float
+    skill_overlap_score: float
+    matched_skills: tuple[str, ...]
+    missing_skills: tuple[str, ...]
+    resume_skills: tuple[str, ...]
+    job_skills: tuple[str, ...]
+    evidence: tuple[str, ...] = ()
+
+    @property
+    def score(self) -> float:
+        """Alias of ``overall_score`` for the ``Matcher`` protocol."""
+        return self.overall_score
+
+    @property
+    def skills_in_resume(self) -> tuple[str, ...]:
+        return self.resume_skills
+
+    @property
+    def skills_in_job(self) -> tuple[str, ...]:
+        return self.job_skills
