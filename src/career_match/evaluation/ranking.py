@@ -66,3 +66,30 @@ def ndcg_at_k(relevances: Sequence[int], k: int) -> float:
     if idcg == 0:
         return 0.0
     return dcg_at_k(relevances, k) / idcg
+
+
+def pairwise_ordering_accuracy(
+    grades: Sequence[int],
+    scores: Sequence[float],
+) -> float:
+    """Fraction of unequal-grade pairs whose scores follow the grade order.
+
+    Pairs with equal grades are skipped. Score ties on unequal grades count
+    as incorrect. Returns 0.0 when no comparable pairs exist.
+    """
+    if len(grades) != len(scores):
+        raise ValueError("grades and scores must have the same length.")
+    correct = 0
+    total = 0
+    for i in range(len(grades)):
+        for j in range(i + 1, len(grades)):
+            if grades[i] == grades[j]:
+                continue
+            total += 1
+            grade_delta = grades[i] - grades[j]
+            score_delta = scores[i] - scores[j]
+            if grade_delta * score_delta > 0:
+                correct += 1
+    if total == 0:
+        return 0.0
+    return correct / total

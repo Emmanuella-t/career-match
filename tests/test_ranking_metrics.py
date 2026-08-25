@@ -4,7 +4,12 @@ import pytest
 
 from career_match.evaluation.fixture import load_evaluation_fixture
 from career_match.evaluation.harness import evaluate_baseline
-from career_match.evaluation.ranking import ndcg_at_k, precision_at_k, recall_at_k
+from career_match.evaluation.ranking import (
+    ndcg_at_k,
+    pairwise_ordering_accuracy,
+    precision_at_k,
+    recall_at_k,
+)
 
 
 def test_precision_at_k() -> None:
@@ -27,6 +32,11 @@ def test_ndcg_perfect_and_inverted() -> None:
     assert ndcg_at_k(perfect, k=4) == pytest.approx(1.0)
     assert ndcg_at_k(inverted, k=4) < ndcg_at_k(perfect, k=4)
     assert ndcg_at_k([0, 0, 0], k=3) == 0.0
+
+
+def test_pairwise_ordering_accuracy_rewards_grade_aligned_scores() -> None:
+    assert pairwise_ordering_accuracy([3, 1, 0], [80.0, 20.0, 5.0]) == 1.0
+    assert pairwise_ordering_accuracy([3, 1, 0], [5.0, 20.0, 80.0]) < 1.0
 
 
 def test_fixture_is_development_only_and_has_graded_pairs() -> None:
