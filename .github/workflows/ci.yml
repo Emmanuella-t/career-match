@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ml:
+    name: ML package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package and dev tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Ruff
+        # pyproject.toml excludes legacy/, frontend/, and .venv so this does
+        # not rewrite the preserved notebook or the Node product prototype.
+        run: ruff check .
+      - name: Tests
+        run: pytest
+      - name: Dataset audit
+        run: python scripts/audit_legacy_dataset.py
+      - name: Import check
+        run: python -c "import career_match; print('Career Match import successful')"
+
+  frontend:
+    name: Product prototype
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
