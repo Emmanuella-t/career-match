@@ -32,7 +32,9 @@ jobs:
       - name: Dataset audit
         run: python scripts/audit_legacy_dataset.py
       - name: Import check
-        run: python -c "import career_match; print('Career Match import successful')"
+        run: |
+          python -c "import career_match; print('Career Match import successful')"
+          python -c "from career_match.api.app import app; print(app.title)"
 
   frontend:
     name: Product prototype
