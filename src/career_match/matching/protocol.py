@@ -1,4 +1,4 @@
-"""Matching contracts for a future explainable resume-to-job model."""
+"""Matching contracts for explainable resume-to-job scoring."""
 
 from __future__ import annotations
 
@@ -16,11 +16,11 @@ class Matcher(Protocol):
 
 
 class UnimplementedMatcher:
-    """Stand-in until a measurable lexical baseline is added."""
+    """Stand-in that refuses to score. Prefer ``BaselineMatcher`` for v0.1."""
 
     def match(self, resume_text: str, job_text: str) -> MatchResult:
         raise MatchingNotImplementedError(
             "No production matching model is implemented. "
-            "The next milestone is a measurable resume-to-job baseline "
-            "before introducing semantic embedding models."
+            "Use BaselineMatcher for the development lexical baseline, "
+            "which is still not a hiring model."
         )

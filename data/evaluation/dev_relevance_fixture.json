@@ -1,0 +1,138 @@
+{
+  "name": "career-match-dev-eval-v0.1",
+  "kind": "development evaluation fixture",
+  "disclaimer": "Synthetic resume/job pairs constructed for development ranking checks. Not real candidate data. Not a production benchmark. Legacy category labels from resume_dataset.csv are not used as relevance.",
+  "relevant_threshold": 2,
+  "relevance_scale": {
+    "3": "strong match — same role family, most required skills present",
+    "2": "moderate match — overlapping stack, missing several required skills",
+    "1": "weak match — some shared vocabulary, little required skill coverage",
+    "0": "obvious mismatch — different role family"
+  },
+  "queries": [
+    {
+      "id": "mle-role",
+      "role": "Machine Learning Engineer",
+      "job_text": "We need a Machine Learning Engineer to ship Deep Learning models. The role uses Python, PyTorch, TensorFlow, scikit-learn, NLP, Docker, and AWS. Experience with Git and Linux is expected.",
+      "candidates": [
+        {
+          "id": "mle-strong",
+          "label": "strong",
+          "relevance": 3,
+          "resume_text": "Machine Learning Engineer. Production Deep Learning in Python with PyTorch, TensorFlow, and scikit-learn. Built NLP pipelines, packaged jobs in Docker, and deployed to AWS. Daily Git and Linux."
+        },
+        {
+          "id": "mle-moderate",
+          "label": "moderate",
+          "relevance": 2,
+          "resume_text": "Data scientist writing Python, pandas, NumPy, SQL, and scikit-learn models. Some AWS notebooks. No PyTorch or Docker production work."
+        },
+        {
+          "id": "mle-weak",
+          "label": "weak",
+          "relevance": 1,
+          "resume_text": "Analyst comfortable in Python and SQL for monthly reports. Limited modeling beyond spreadsheets and basic pandas charts."
+        },
+        {
+          "id": "mle-mismatch",
+          "label": "mismatch",
+          "relevance": 0,
+          "resume_text": "Frontend engineer building React and Next.js apps in TypeScript, HTML, and CSS. Focused on UI polish, not model training."
+        }
+      ]
+    },
+    {
+      "id": "ds-role",
+      "role": "Data Scientist",
+      "job_text": "Data Scientist to analyze product funnels with Python, pandas, NumPy, SQL, and scikit-learn. Clear writing and reproducible Git workflows required.",
+      "candidates": [
+        {
+          "id": "ds-strong",
+          "label": "strong",
+          "relevance": 3,
+          "resume_text": "Data Scientist using Python, pandas, NumPy, SQL, and scikit-learn for experiment analysis. Shares notebooks through Git and documents assumptions."
+        },
+        {
+          "id": "ds-moderate",
+          "label": "moderate",
+          "relevance": 2,
+          "resume_text": "Backend-leaning analyst: Python, SQL, and pandas for ETL. Light scikit-learn classification, no experiment design."
+        },
+        {
+          "id": "ds-weak",
+          "label": "weak",
+          "relevance": 1,
+          "resume_text": "Java and SQL application developer who occasionally exports CSV files. No pandas or scikit-learn."
+        },
+        {
+          "id": "ds-mismatch",
+          "label": "mismatch",
+          "relevance": 0,
+          "resume_text": "Platform engineer specializing in Kubernetes, C++, Linux internals, and cluster networking. No analytics stack."
+        }
+      ]
+    },
+    {
+      "id": "backend-role",
+      "role": "Backend Engineer",
+      "job_text": "Backend Engineer for REST APIs in Python using FastAPI or Django, SQL, Docker, AWS, Linux, and Git.",
+      "candidates": [
+        {
+          "id": "backend-strong",
+          "label": "strong",
+          "relevance": 3,
+          "resume_text": "Backend Engineer shipping REST APIs with Python, FastAPI, Django, and SQL. Services run in Docker on AWS Linux hosts. Git-based reviews."
+        },
+        {
+          "id": "backend-moderate",
+          "label": "moderate",
+          "relevance": 2,
+          "resume_text": "Python web developer using Flask, SQL, and Git. Some Docker locally. No AWS production ownership."
+        },
+        {
+          "id": "backend-weak",
+          "label": "weak",
+          "relevance": 1,
+          "resume_text": "Writes Python scripts and SQL queries for internal tools. Has used Git. No API framework or containers."
+        },
+        {
+          "id": "backend-mismatch",
+          "label": "mismatch",
+          "relevance": 0,
+          "resume_text": "Computer Vision researcher training PyTorch models and NLP demos. No web APIs, SQL services, or Docker."
+        }
+      ]
+    },
+    {
+      "id": "frontend-role",
+      "role": "Frontend Engineer",
+      "job_text": "Frontend Engineer for a TypeScript React and Next.js product. HTML, CSS, JavaScript, and Git are required.",
+      "candidates": [
+        {
+          "id": "frontend-strong",
+          "label": "strong",
+          "relevance": 3,
+          "resume_text": "Frontend Engineer delivering TypeScript React and Next.js features. Strong HTML, CSS, JavaScript, and Git habits."
+        },
+        {
+          "id": "frontend-moderate",
+          "label": "moderate",
+          "relevance": 2,
+          "resume_text": "JavaScript React developer with HTML and CSS. Little TypeScript and no Next.js."
+        },
+        {
+          "id": "frontend-weak",
+          "label": "weak",
+          "relevance": 1,
+          "resume_text": "Builds static HTML and CSS landing pages. Rare JavaScript, no React."
+        },
+        {
+          "id": "frontend-mismatch",
+          "label": "mismatch",
+          "relevance": 0,
+          "resume_text": "Systems programmer in C++ on Linux with Kubernetes. No JavaScript or UI work."
+        }
+      ]
+    }
+  ]
+}

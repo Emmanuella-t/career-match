@@ -1,7 +1,9 @@
 # Experiments
 
-Reserved for matching baselines and error analysis.
+Reserved for matching baselines and error analysis notebooks.
 
-Nothing in this folder is a production model. The first planned experiment
-is a lexical resume-to-job baseline with a frozen split — not embedding
-fine-tuning.
+The first lexical baseline is implemented in
+`src/career_match/matching/` and evaluated by
+`scripts/evaluate_baseline.py`. Nothing in this folder is a production
+model. Embedding fine-tuning is intentionally out of scope until that
+baseline is beaten on the same harness.

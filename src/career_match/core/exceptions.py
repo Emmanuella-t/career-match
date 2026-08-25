@@ -10,7 +10,8 @@ class SchemaError(CareerMatchError):
 
 
 class MatchingNotImplementedError(CareerMatchError):
-    """Raised because no production resume-to-job matcher exists yet.
+    """Raised by ``UnimplementedMatcher`` when a caller requires a no-op sentinel.
 
-    The next milestone is a measurable lexical baseline, not this placeholder.
+    Prefer ``BaselineMatcher`` for the lexical v0.1 baseline. That baseline is
+    still not a production hiring model.
     """
