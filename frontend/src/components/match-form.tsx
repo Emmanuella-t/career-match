@@ -1,6 +1,8 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useId, useState } from "react";
 
 import { AuthGateModal } from "@/components/auth-gate-modal";
@@ -17,9 +19,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  ApiError,
   MatchApiError,
   type MatcherName,
   type MatchResponse,
@@ -38,6 +42,12 @@ import {
   loadMatchDraft,
   saveMatchDraft,
 } from "@/lib/match-draft";
+import {
+  buildSaveMatchPayload,
+  getJob,
+  getResume,
+  saveMatchAnalysis,
+} from "@/lib/persistence-api";
 
 const SAMPLE_RESUME = `Jordan Lee
 Machine Learning Engineer
@@ -73,18 +83,27 @@ export function MatchForm() {
   const resumeId = `${formId}-resume`;
   const jobId = `${formId}-job`;
   const matcherId = `${formId}-matcher`;
+  const jobTitleId = `${formId}-job-title`;
+  const companyId = `${formId}-company`;
 
-  const { isLoaded, isSignedIn } = useAuth();
+  const searchParams = useSearchParams();
+  const { isLoaded, isSignedIn, getToken } = useAuth();
   const authenticated = Boolean(isSignedIn);
 
   const [resume, setResume] = useState("");
   const [job, setJob] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [company, setCompany] = useState("");
+  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [matcher, setMatcher] = useState<MatcherName>("semantic");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<MatchResponse | null>(null);
   const [pending, setPending] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
   const [guestCount, setGuestCount] = useState(0);
+  const [savePending, setSavePending] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     /* Restore client-only draft + guest usage after mount (SSR has no storage). */
@@ -106,6 +125,49 @@ export function MatchForm() {
     setGuestCount(0);
   }, [isLoaded, authenticated]);
 
+  useEffect(() => {
+    if (!isLoaded || !authenticated) return;
+
+    const resumeParam = searchParams.get("resumeId");
+    const jobParam = searchParams.get("jobId");
+    if (!resumeParam && !jobParam) return;
+
+    let cancelled = false;
+
+    async function loadSaved() {
+      try {
+        const token = await getToken();
+        if (!token || cancelled) return;
+
+        if (resumeParam) {
+          const saved = await getResume(token, resumeParam);
+          if (cancelled) return;
+          setResume(saved.resume_text);
+          setSelectedResumeId(saved.id);
+        }
+        if (jobParam) {
+          const saved = await getJob(token, jobParam);
+          if (cancelled) return;
+          setJob(saved.job_description);
+          setJobTitle(saved.title);
+          setCompany(saved.company ?? "");
+        }
+      } catch (err) {
+        if (cancelled) return;
+        const message =
+          err instanceof ApiError
+            ? err.message
+            : "Could not load the saved resume or job.";
+        setError(message);
+      }
+    }
+
+    void loadSaved();
+    return () => {
+      cancelled = true;
+    };
+  }, [authenticated, getToken, isLoaded, searchParams]);
+
   const closeAuthGate = useCallback(() => {
     setAuthGateOpen(false);
   }, []);
@@ -114,6 +176,8 @@ export function MatchForm() {
     if (pending) return;
 
     setError(null);
+    setSaveMessage(null);
+    setSaveError(null);
 
     if (!resume.trim() || !job.trim()) {
       setResult(null);
@@ -158,6 +222,35 @@ export function MatchForm() {
     }
   }
 
+  async function runSaveAnalysis() {
+    if (!result || !authenticated || savePending) return;
+    setSavePending(true);
+    setSaveError(null);
+    setSaveMessage(null);
+    try {
+      const token = await getToken();
+      await saveMatchAnalysis(
+        token,
+        buildSaveMatchPayload({
+          result,
+          jobDescription: job,
+          jobTitle,
+          company,
+          resumeId: selectedResumeId,
+        }),
+      );
+      setSaveMessage("Analysis saved to your match history.");
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : "Could not save this analysis. Your results are still visible above.";
+      setSaveError(message);
+    } finally {
+      setSavePending(false);
+    }
+  }
+
   const remaining = authenticated
     ? null
     : getRemainingGuestAnalyses(guestCount);
@@ -186,6 +279,19 @@ export function MatchForm() {
                   : `${remaining} of ${GUEST_ANALYSIS_LIMIT} free analyses remaining.`}
               </p>
             ) : null}
+            {isLoaded && authenticated ? (
+              <p className="mt-2 text-sm text-muted-foreground" role="status">
+                Signed in — analyses are not saved automatically. Use{" "}
+                <span className="font-medium text-foreground">Save analysis</span>{" "}
+                after a result if you want it in your history.{" "}
+                <Link
+                  href="/dashboard#resumes"
+                  className="font-medium text-career-green underline-offset-4 hover:underline"
+                >
+                  Manage resumes
+                </Link>
+              </p>
+            ) : null}
           </CardHeader>
           <CardContent>
             <form
@@ -201,7 +307,10 @@ export function MatchForm() {
                   <Textarea
                     id={resumeId}
                     value={resume}
-                    onChange={(event) => setResume(event.target.value)}
+                    onChange={(event) => {
+                      setResume(event.target.value);
+                      setSelectedResumeId(null);
+                    }}
                     placeholder="Paste the full resume text…"
                     className="min-h-56 resize-y bg-card md:min-h-72"
                     disabled={pending}
@@ -225,6 +334,31 @@ export function MatchForm() {
                   />
                 </div>
               </div>
+
+              {authenticated ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor={jobTitleId}>Job title (optional)</Label>
+                    <Input
+                      id={jobTitleId}
+                      value={jobTitle}
+                      onChange={(event) => setJobTitle(event.target.value)}
+                      placeholder="e.g. Machine Learning Engineer"
+                      disabled={pending}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={companyId}>Company (optional)</Label>
+                    <Input
+                      id={companyId}
+                      value={company}
+                      onChange={(event) => setCompany(event.target.value)}
+                      placeholder="e.g. Acme"
+                      disabled={pending}
+                    />
+                  </div>
+                </div>
+              ) : null}
 
               <div className="space-y-2">
                 <Label
@@ -276,8 +410,11 @@ export function MatchForm() {
                   onClick={() => {
                     setResume(SAMPLE_RESUME);
                     setJob(SAMPLE_JOB);
+                    setSelectedResumeId(null);
                     setError(null);
                     setResult(null);
+                    setSaveMessage(null);
+                    setSaveError(null);
                   }}
                 >
                   Load sample pair
@@ -287,11 +424,42 @@ export function MatchForm() {
           </CardContent>
         </Card>
 
-        <div className="min-w-0">
+        <div className="min-w-0 space-y-4">
           {pending ? (
             <MatchLoadingState />
           ) : result ? (
-            <MatchResults result={result} />
+            <>
+              <MatchResults result={result} />
+              {authenticated ? (
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={savePending}
+                    aria-busy={savePending}
+                    onClick={() => void runSaveAnalysis()}
+                  >
+                    {savePending ? "Saving…" : "Save analysis"}
+                  </Button>
+                  {saveMessage ? (
+                    <p className="text-sm text-primary" role="status">
+                      {saveMessage}{" "}
+                      <Link
+                        href="/dashboard#history"
+                        className="font-medium text-career-green underline-offset-4 hover:underline"
+                      >
+                        View history
+                      </Link>
+                    </p>
+                  ) : null}
+                  {saveError ? (
+                    <p className="text-sm text-destructive" role="alert">
+                      {saveError}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </>
           ) : (
             <MatchEmptyState />
           )}
