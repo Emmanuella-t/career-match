@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/dashboard", label: "Overview" },
   { href: "/dashboard/jobs", label: "Discover Jobs" },
+  { href: "/dashboard/tailor", label: "Tailor Resume" },
   { href: "/match", label: "New Match" },
   { href: "/dashboard#recent-matches", label: "Recent Matches" },
   { href: "/dashboard#resumes", label: "My Resumes" },

@@ -198,6 +198,7 @@ Tailwind, shadcn/ui). Routes:
 | `/signup` | Public | Clerk sign-up |
 | `/dashboard` | Protected | Authenticated workspace shell |
 | `/dashboard/jobs` | Protected | Rank discoverable jobs for a saved resume |
+| `/dashboard/tailor` | Protected | Grounded resume tailoring for a target job |
 | `/architecture` | Public | Product-language architecture |
 
 **Auth:** Clerk (`@clerk/nextjs`) — email/password sessions, protected
@@ -228,6 +229,13 @@ default), and ranks them with the same matcher pipeline as `/match`. Discoverabl
 jobs live in `job_opportunities`; user bookmarks remain in `saved_jobs`. No live
 external job feed ships in this milestone — production starts with an empty
 catalog until a provider sync is added. Tests inject synthetic in-memory sources.
+
+**Grounded tailoring:** authenticated `POST /api/v1/resumes/tailor` maps resume
+evidence to job requirements before any rewrite generation. Deterministic evidence
+classification reuses `extraction/evidence.py`. Rewrite providers may phrase
+supported evidence only; unsupported requirements are excluded. Alignment scores
+use the existing matcher — not ATS pass probability. Original saved resumes are
+never overwritten; users copy accepted suggestions manually.
 
 Configure the API base with `NEXT_PUBLIC_API_URL` (default
 `http://localhost:8000`). Clerk keys: see `frontend/.env.example`.
