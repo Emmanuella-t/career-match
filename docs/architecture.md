@@ -230,12 +230,14 @@ jobs live in `job_opportunities`; user bookmarks remain in `saved_jobs`. No live
 external job feed ships in this milestone — production starts with an empty
 catalog until a provider sync is added. Tests inject synthetic in-memory sources.
 
-**Grounded tailoring:** authenticated `POST /api/v1/resumes/tailor` maps resume
-evidence to job requirements before any rewrite generation. Deterministic evidence
-classification reuses `extraction/evidence.py`. Rewrite providers may phrase
-supported evidence only; unsupported requirements are excluded. Alignment scores
-use the existing matcher — not ATS pass probability. Original saved resumes are
-never overwritten; users copy accepted suggestions manually.
+**Grounded tailoring:** authenticated tailoring follows analyze → review → preview → export:
+
+1. `POST /api/v1/resumes/tailor` — evidence map + grounded rewrite suggestions (each with a stable `suggestion_id`)
+2. User accepts/rejects suggestions in `/dashboard/tailor` (nothing auto-accepted)
+3. `POST /api/v1/resumes/tailor/apply` — server re-runs tailoring, validates accepted IDs, builds a structured revised resume (`summary`, `experience`, `projects`, `skills`, `education`), recomputes alignment before/after, returns gaps and warnings
+4. `POST /api/v1/resumes/export` — same revalidation path; returns ATS-friendly DOCX (`python-docx`) or plain text
+
+Deterministic evidence classification reuses `extraction/evidence.py`. Rewrite providers may phrase supported evidence only; unsupported requirements are excluded. `tailoring/safeguards.py` blocks keyword stuffing and unsupported claims on revised text. Alignment scores use the existing matcher — not ATS pass probability. Original saved resumes are never overwritten; tailored output is download-only (no `resume_revisions` persistence in this milestone).
 
 Configure the API base with `NEXT_PUBLIC_API_URL` (default
 `http://localhost:8000`). Clerk keys: see `frontend/.env.example`.

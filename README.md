@@ -151,6 +151,8 @@ python scripts/start_api_production.py
 - Resume parse (authenticated): `POST /api/v1/resumes/parse` (`multipart/form-data`)
 - Job discovery (authenticated): `POST /api/v1/jobs/discover`
 - Resume tailoring (authenticated): `POST /api/v1/resumes/tailor`
+- Tailoring apply/preview (authenticated): `POST /api/v1/resumes/tailor/apply`
+- Tailored resume export (authenticated): `POST /api/v1/resumes/export` (`docx` | `txt`)
 - OpenAPI docs: `/docs`
 
 Default matcher is **semantic**. Optional body field `matcher` may be
@@ -203,16 +205,33 @@ shows an honest empty state. Automated tests use synthetic fixture providers onl
 Authenticated users can tailor a saved resume for a target job from
 `/dashboard/tailor` (also linked from job discovery and match results).
 
-Flow:
+Full workflow:
 
-1. Resume evidence is mapped against job requirements (supported, partial,
+1. Upload resume or save pasted text (original resume remains source of truth)
+2. Discover jobs or paste a target job description
+3. Run match explanation to understand baseline alignment
+4. **Analyze** — map resume evidence to job requirements (supported, partial,
    equivalent, unsupported, negated)
-2. Alignment score uses the existing matcher pipeline — not an ATS pass probability
-3. Deterministic rewrite suggestions introduce only supported terminology
-4. Optional LLM phrasing runs only when `CAREER_MATCH_LLM_API_KEY` is configured
-5. Users review/accept suggestions and copy revised text — **original resumes are never overwritten**
+5. **Review suggestions** — accept or reject grounded rewrite suggestions individually
+6. **Preview revision** — apply accepted suggestions to a structured revised resume
+   and compare original vs revised alignment (`original_alignment_score`,
+   `revised_alignment_score`, `alignment_delta`)
+7. **Export** — download ATS-friendly DOCX or plain text (server-side `python-docx`)
+
+| Route | Purpose |
+| --- | --- |
+| `POST /api/v1/resumes/tailor` | Evidence map + grounded rewrite suggestions |
+| `POST /api/v1/resumes/tailor/apply` | Apply accepted suggestion IDs; return revised preview + alignment delta |
+| `POST /api/v1/resumes/export` | Revalidate, compute alignment, return downloadable file |
+
+Alignment scores use the existing matcher pipeline — **not** ATS pass probability.
+Optional LLM phrasing runs only when `CAREER_MATCH_LLM_API_KEY` is configured.
+Accepted suggestions are revalidated server-side; arbitrary client rewrites are rejected.
+Anti-keyword-stuffing safeguards run on revised text before preview/export.
 
 Career Match does not fabricate missing experience and does not guarantee ATS passage.
+Exported resumes should still be reviewed by the user before applying.
+**Original saved resumes are never overwritten** (no `resume_revisions` table in this milestone).
 
 ## Product access modes
 

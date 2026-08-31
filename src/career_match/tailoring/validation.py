@@ -7,10 +7,13 @@ import re
 from career_match.extraction.skills import SKILL_LEXICON
 from career_match.tailoring.protocol import RewriteSuggestion
 
-_FORBIDDEN_PATTERNS = (
+FORBIDDEN_PATTERNS = (
     re.compile(r"\b\d+\+?\s*years?\b", re.IGNORECASE),
     re.compile(r"\b(certified|certification)\b", re.IGNORECASE),
 )
+
+# Backward-compatible alias for internal imports
+_FORBIDDEN_PATTERNS = FORBIDDEN_PATTERNS
 
 
 def _surfaces_for_keyword(keyword: str) -> tuple[str, ...]:
@@ -36,7 +39,7 @@ def suggestion_introduces_only_approved_keywords(
             if pattern.search(suggested):
                 return False
 
-    for pattern in _FORBIDDEN_PATTERNS:
+    for pattern in FORBIDDEN_PATTERNS:
         if pattern.search(suggestion.suggested_text) and not pattern.search(
             suggestion.original_text
         ):

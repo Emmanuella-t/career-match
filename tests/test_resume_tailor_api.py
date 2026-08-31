@@ -226,6 +226,7 @@ def test_fake_rewrite_provider_injection(client: TestClient) -> None:
     body = response.json()
     assert len(body["rewrite_suggestions"]) >= 1
     assert body["rewrite_suggestions"][0]["keywords_introduced"] == ["ci/cd"]
+    assert "suggestion_id" in body["rewrite_suggestions"][0]
 
 
 def test_match_endpoint_unchanged(client: TestClient) -> None:
