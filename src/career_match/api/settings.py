@@ -8,6 +8,10 @@ Environment variables (optional):
 - ``HOST`` — bind address for production startup (default ``0.0.0.0``).
 - ``CAREER_MATCH_MODEL_CACHE_DIR`` — directory for Hugging Face /
   sentence-transformers model cache when the host needs an explicit path.
+- ``CLERK_ISSUER`` / ``CLERK_JWKS_URL`` — Clerk JWT verification for
+  persistence routes.
+- ``DATABASE_URL`` — PostgreSQL connection string (Neon in production;
+  backend only — never expose to the browser).
 
 Importing this module does not download MiniLM.
 """

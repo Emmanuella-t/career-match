@@ -60,8 +60,19 @@ uvicorn career_match.api.app:app --reload --host 127.0.0.1 --port 8000
 | `HOST` | Bind address (production script) | `0.0.0.0` |
 | `CAREER_MATCH_CORS_ORIGINS` | Comma-separated allowed browser origins | `http://localhost:3000`, `http://127.0.0.1:3000` |
 | `CAREER_MATCH_MODEL_CACHE_DIR` | Optional model cache directory | unset (library defaults) |
+| `CLERK_ISSUER` | Clerk issuer URL for JWT verification (persistence) | required for authenticated APIs |
+| `CLERK_JWKS_URL` | Optional JWKS override | `{CLERK_ISSUER}/.well-known/jwks.json` |
+| `DATABASE_URL` | PostgreSQL connection string (Neon; SSL via URL) | required for persistence |
 
-See `.env.example`. Never commit real secrets.
+See `.env.example`. Never commit real secrets. **Never** put
+`DATABASE_URL` in the Next.js env or any `NEXT_PUBLIC_*` variable.
+
+Apply schema from `migrations/0001_initial_persistence.sql` (see
+`migrations/README.md`) before enabling dashboard saves in production.
+
+Neon may scale compute to zero when idle. The API uses SQLAlchemy
+`pool_pre_ping=True` so the first request after a cold start can recover
+from stale connections.
 
 ### Health endpoints
 
@@ -101,11 +112,15 @@ Build-time (inlined into the browser bundle):
 
 ```bash
 NEXT_PUBLIC_API_URL=https://your-api.example.com
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
+CLERK_SECRET_KEY=sk_...   # Next.js server only
 ```
 
 If unset at build time, the client falls back to `http://localhost:8000`
 (local development only). Production builds **must** set
 `NEXT_PUBLIC_API_URL` to the deployed API origin.
+
+Frontend needs Clerk keys only. `DATABASE_URL` stays on the FastAPI host.
 
 See `frontend/.env.example`.
 
@@ -150,12 +165,12 @@ explicit allow-list.
 ## Safety notes
 
 - Scores are relevance signals, not hiring probabilities.
-- Frontend auth uses Clerk (see `frontend/.env.example`). The FastAPI
-  matcher service does not yet enforce auth or guest quotas.
+- Frontend auth uses Clerk (see `frontend/.env.example`).
+- Persistence endpoints verify Clerk JWTs server-side and scope rows to
+  `clerk_user_id`. Public `POST /api/v1/match` remains available for guests.
 - Guest analysis limits are client-side for product flow only; public
   production enforcement should be server-backed.
-- No application database yet — dashboard history/resumes/jobs are empty
-  states, not fabricated data.
+- `DATABASE_URL` is backend-only — never ship it to Next.js.
 - Do not expose debug mode or Python tracebacks to clients (API returns
   structured `detail` messages only).
-  Do not commit Clerk secrets.
+  Do not commit Clerk or database secrets.

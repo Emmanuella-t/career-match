@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { MatchForm } from "@/components/match-form";
 
 export default function MatchPage() {
@@ -16,7 +18,15 @@ export default function MatchPage() {
           relevance signals, not hiring decisions.
         </p>
       </div>
-      <MatchForm />
+      <Suspense
+        fallback={
+          <p className="text-sm text-muted-foreground" role="status">
+            Loading match workspace…
+          </p>
+        }
+      >
+        <MatchForm />
+      </Suspense>
     </div>
   );
 }
