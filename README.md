@@ -148,11 +148,31 @@ python scripts/start_api_production.py
 - Health: `GET /health` (does not load MiniLM)
 - Ready: `GET /ready` (does not force MiniLM load)
 - Match: `POST /api/v1/match`
+- Resume parse (authenticated): `POST /api/v1/resumes/parse` (`multipart/form-data`)
 - OpenAPI docs: `/docs`
 
 Default matcher is **semantic**. Optional body field `matcher` may be
 `semantic`, `hybrid`, or `lexical`. Importing the app does not download
 MiniLM; the encoder loads on first semantic/hybrid request.
+
+### Resume file upload and parsing
+
+Authenticated users can upload a resume file on `/match` or save parsed text
+from the dashboard. Parsing uses in-memory **pypdf** (PDF) and **python-docx**
+(DOCX); files are not written to disk.
+
+| Setting | Value |
+| --- | --- |
+| Supported types | `.pdf`, `.docx` |
+| Max file size | 2 MiB |
+| Max extracted text | 50,000 characters (same cap as paste) |
+| Scanned PDFs | Not supported in this milestone (no OCR) |
+
+If a PDF has no extractable text, the API returns a clear error explaining
+that image-only/scanned PDFs are not supported yet. Guests can still paste
+resume text manually; file upload requires sign-in because parsing is an
+authenticated endpoint. Parsed text is not persisted automatically — use
+**Save resume** on `/match` or the dashboard resumes section.
 
 ## Product access modes
 
@@ -167,7 +187,7 @@ description, and matcher selection in `sessionStorage` so work is not lost.
 
 Authenticated users can:
 
-- save and manage resumes (paste text; no PDF parsing yet)
+- save and manage resumes (upload PDF/DOCX or paste text)
 - save job opportunities manually
 - save a successful analysis via **Save analysis** (not automatic)
 - open recent matches and history on `/dashboard`

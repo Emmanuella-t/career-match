@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from career_match.api.persistence_routes import router as persistence_router
+from career_match.api.resume_parse_routes import router as resume_parse_router
 from career_match.api.schemas import (
     ErrorResponse,
     HealthResponse,
@@ -63,6 +64,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     application.include_router(persistence_router)
+    application.include_router(resume_parse_router)
 
     @application.exception_handler(RequestValidationError)
     async def validation_exception_handler(

@@ -12,6 +12,8 @@ Environment variables (optional):
   persistence routes.
 - ``DATABASE_URL`` — PostgreSQL connection string (Neon in production;
   backend only — never expose to the browser).
+- Resume uploads are parsed in memory with a ``2 MiB`` file size cap
+  (``MAX_RESUME_FILE_BYTES``). Supported formats: PDF and DOCX.
 
 Importing this module does not download MiniLM.
 """
@@ -24,6 +26,9 @@ import os
 # Large enough for typical multi-page resumes and long JDs; small enough to
 # reject accidental multi-megabyte payloads.
 MAX_TEXT_CHARS = 50_000
+
+# Conservative in-memory upload cap for resume PDF/DOCX parsing (2 MiB).
+MAX_RESUME_FILE_BYTES = 2 * 1024 * 1024
 
 # Local Next.js defaults. Production origins must come from
 # CAREER_MATCH_CORS_ORIGINS — never use allow_origins=["*"] with credentials.

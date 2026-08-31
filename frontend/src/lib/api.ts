@@ -95,13 +95,20 @@ type ApiFetchOptions = {
   body?: unknown;
   token?: string | null;
   errorName?: "ApiError" | "MatchApiError";
+  formData?: FormData;
 };
 
 export async function apiFetch<T>(
   path: string,
   options: ApiFetchOptions = {},
 ): Promise<T> {
-  const { method = "GET", body, token, errorName = "ApiError" } = options;
+  const {
+    method = "GET",
+    body,
+    token,
+    errorName = "ApiError",
+    formData,
+  } = options;
   const headers: Record<string, string> = {};
   if (body !== undefined) {
     headers["Content-Type"] = "application/json";
@@ -115,7 +122,12 @@ export async function apiFetch<T>(
     response = await fetch(`${getApiBaseUrl()}${path}`, {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body:
+        formData !== undefined
+          ? formData
+          : body === undefined
+            ? undefined
+            : JSON.stringify(body),
     });
   } catch {
     const ErrorCtor = errorName === "MatchApiError" ? MatchApiError : ApiError;
@@ -173,6 +185,51 @@ export async function matchResumeToJob(
   if (!isMatchResponse(body)) {
     throw new MatchApiError(
       "Career Match received an unexpected response from the analysis service.",
+      200,
+    );
+  }
+
+  return body;
+}
+
+export type ResumeParseResponse = {
+  filename: string;
+  file_type: string;
+  character_count: number;
+  extracted_text: string;
+};
+
+function isResumeParseResponse(value: unknown): value is ResumeParseResponse {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return (
+    typeof record.filename === "string" &&
+    typeof record.file_type === "string" &&
+    typeof record.character_count === "number" &&
+    typeof record.extracted_text === "string"
+  );
+}
+
+export async function parseResumeFile(
+  token: string | null,
+  file: File,
+): Promise<ResumeParseResponse> {
+  if (!token) {
+    throw new ApiError("Please log in to upload a resume file.", 401);
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const body = await apiFetch<unknown>("/api/v1/resumes/parse", {
+    method: "POST",
+    token,
+    formData,
+  });
+
+  if (!isResumeParseResponse(body)) {
+    throw new ApiError(
+      "Career Match received an unexpected response while parsing your resume.",
       200,
     );
   }

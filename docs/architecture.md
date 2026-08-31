@@ -213,10 +213,12 @@ attempt opens an auth gate and preserves resume/JD/matcher in
 `sessionStorage` (not query strings). Authenticated users bypass the
 limit and reuse the same `/match` + FastAPI path.
 
-Flow: paste resume and job text → `Analyze Match` →
-`frontend/src/lib/api.ts` calls `POST /api/v1/match` → display relevance score
-and skill explainability. Default matcher is semantic. Scores are not hiring
-probabilities. PDF/DOCX upload is not implemented.
+Flow: upload a PDF/DOCX resume (authenticated) or paste resume text, add a job
+description, then `Analyze Match` → `frontend/src/lib/api.ts` calls
+`POST /api/v1/match` → display relevance score and skill explainability.
+Authenticated parsing uses `POST /api/v1/resumes/parse` (in-memory; 2 MiB cap;
+text-based PDF/DOCX only — no OCR for scanned PDFs). Default matcher is
+semantic. Scores are not hiring probabilities.
 
 Configure the API base with `NEXT_PUBLIC_API_URL` (default
 `http://localhost:8000`). Clerk keys: see `frontend/.env.example`.
