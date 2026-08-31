@@ -272,3 +272,22 @@ class SavedJobRecord(BaseModel):
     notes: str | None = None
     created_at: datetime
     updated_at: datetime
+
+
+# ---------------------------------------------------------------------------
+# Discoverable job opportunities (provider catalog — not user bookmarks)
+# ---------------------------------------------------------------------------
+
+
+class JobOpportunityRecord(BaseModel):
+    id: UUID
+    title: str
+    company: str | None = None
+    location: str | None = None
+    description: str
+    source: str
+    source_url: str | None = None
+    apply_url: str | None = None
+    employment_type: str | None = None
+    created_at: datetime
+    updated_at: datetime

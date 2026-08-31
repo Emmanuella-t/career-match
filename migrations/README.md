@@ -9,12 +9,18 @@ persistence (Neon in production).
 
 1. Open your Neon project → **SQL Editor**
 2. Paste and run `0001_initial_persistence.sql`
+3. Paste and run `0002_job_opportunities.sql` (job discovery catalog)
 
 ### Option B — psql
 
 ```bash
 psql "$DATABASE_URL" -f migrations/0001_initial_persistence.sql
+psql "$DATABASE_URL" -f migrations/0002_job_opportunities.sql
 ```
+
+`0002_job_opportunities.sql` adds the provider-neutral `job_opportunities` catalog
+for authenticated job discovery. The table starts empty in production until a real
+job provider sync is configured.
 
 ## Backend environment
 

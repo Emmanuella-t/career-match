@@ -12,12 +12,14 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from career_match.persistence.errors import PersistenceUnavailableError, RecordNotFoundError
 from career_match.persistence.models import (
+    JobOpportunityRow,
     MatchAnalysisRow,
     ResumeRow,
     SavedJobRow,
     UserProfileRow,
 )
 from career_match.persistence.schemas import (
+    JobOpportunityRecord,
     MatchAnalysisCreate,
     MatchAnalysisRecord,
     ProfileUpsert,
@@ -96,6 +98,22 @@ def _job_to_schema(row: SavedJobRow) -> SavedJobRecord:
         job_description=row.job_description,
         source_url=row.source_url,
         notes=row.notes,
+        created_at=row.created_at,
+        updated_at=row.updated_at,
+    )
+
+
+def _opportunity_to_schema(row: JobOpportunityRow) -> JobOpportunityRecord:
+    return JobOpportunityRecord(
+        id=row.id,
+        title=row.title,
+        company=row.company,
+        location=row.location,
+        description=row.description,
+        source=row.source,
+        source_url=row.source_url,
+        apply_url=row.apply_url,
+        employment_type=row.employment_type,
         created_at=row.created_at,
         updated_at=row.updated_at,
     )
@@ -398,3 +416,25 @@ class PostgresPersistenceStore:
             session.delete(row)
 
         self._run(op)
+
+    def list_job_opportunities(
+        self,
+        *,
+        location: str | None = None,
+        employment_type: str | None = None,
+        limit: int | None = None,
+    ) -> list[JobOpportunityRecord]:
+        def op(session: Session) -> list[JobOpportunityRecord]:
+            query = select(JobOpportunityRow).order_by(JobOpportunityRow.updated_at.desc())
+            if location:
+                query = query.where(JobOpportunityRow.location.ilike(f"%{location.strip()}%"))
+            if employment_type:
+                query = query.where(
+                    JobOpportunityRow.employment_type.ilike(employment_type.strip())
+                )
+            if limit is not None:
+                query = query.limit(limit)
+            rows = session.scalars(query).all()
+            return [_opportunity_to_schema(row) for row in rows]
+
+        return self._run(op)  # type: ignore[return-value]

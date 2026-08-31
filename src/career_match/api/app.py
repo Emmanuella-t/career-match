@@ -17,6 +17,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from career_match.api.job_discovery_routes import router as job_discovery_router
 from career_match.api.persistence_routes import router as persistence_router
 from career_match.api.resume_parse_routes import router as resume_parse_router
 from career_match.api.schemas import (
@@ -63,6 +64,7 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["*"],
     )
+    application.include_router(job_discovery_router)
     application.include_router(persistence_router)
     application.include_router(resume_parse_router)
 
