@@ -20,6 +20,7 @@ from career_match.tailoring.providers import (
     DeterministicRewriteProvider,
     OptionalLLMRewriteProvider,
 )
+from career_match.tailoring.suggestion_ids import compute_suggestion_id
 from career_match.tailoring.validation import filter_valid_suggestions
 
 TAILOR_DISCLAIMER = (
@@ -135,6 +136,7 @@ def _to_evidence_entry(entry) -> EvidenceMapEntry:
 
 def _to_rewrite_response(item: RewriteSuggestion) -> RewriteSuggestionResponse:
     return RewriteSuggestionResponse(
+        suggestion_id=compute_suggestion_id(item),
         section=item.section,
         original_text=item.original_text,
         suggested_text=item.suggested_text,
