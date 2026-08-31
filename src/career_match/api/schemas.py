@@ -83,3 +83,12 @@ class ReadyResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
+
+
+class ResumeParseResponse(BaseModel):
+    """Structured response from resume file parsing."""
+
+    filename: str
+    file_type: str
+    character_count: int
+    extracted_text: str

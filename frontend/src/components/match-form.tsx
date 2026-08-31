@@ -3,7 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { AuthGateModal } from "@/components/auth-gate-modal";
 import {
@@ -28,6 +28,7 @@ import {
   type MatcherName,
   type MatchResponse,
   matchResumeToJob,
+  parseResumeFile,
 } from "@/lib/api";
 import {
   clearGuestUsageOnAuth,
@@ -44,6 +45,7 @@ import {
 } from "@/lib/match-draft";
 import {
   buildSaveMatchPayload,
+  createResume,
   getJob,
   getResume,
   saveMatchAnalysis,
@@ -85,6 +87,9 @@ export function MatchForm() {
   const matcherId = `${formId}-matcher`;
   const jobTitleId = `${formId}-job-title`;
   const companyId = `${formId}-company`;
+  const resumeUploadId = `${formId}-resume-upload`;
+  const resumeSaveNameId = `${formId}-resume-save-name`;
+  const resumeFileInputRef = useRef<HTMLInputElement>(null);
 
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn, getToken } = useAuth();
@@ -104,6 +109,13 @@ export function MatchForm() {
   const [savePending, setSavePending] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [uploadPending, setUploadPending] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadedFilename, setUploadedFilename] = useState<string | null>(null);
+  const [resumeSaveName, setResumeSaveName] = useState("");
+  const [resumeSavePending, setResumeSavePending] = useState(false);
+  const [resumeSaveMessage, setResumeSaveMessage] = useState<string | null>(null);
+  const [resumeSaveError, setResumeSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     /* Restore client-only draft + guest usage after mount (SSR has no storage). */
@@ -171,6 +183,69 @@ export function MatchForm() {
   const closeAuthGate = useCallback(() => {
     setAuthGateOpen(false);
   }, []);
+
+  async function runResumeUpload(file: File) {
+    if (uploadPending) return;
+
+    setUploadError(null);
+    setResumeSaveMessage(null);
+    setResumeSaveError(null);
+
+    if (!authenticated) {
+      setAuthGateOpen(true);
+      return;
+    }
+
+    setUploadPending(true);
+    setUploadedFilename(null);
+
+    try {
+      const token = await getToken();
+      const parsed = await parseResumeFile(token, file);
+      setResume(parsed.extracted_text);
+      setSelectedResumeId(null);
+      setUploadedFilename(parsed.filename);
+      setResumeSaveName(parsed.filename.replace(/\.[^.]+$/, "") || parsed.filename);
+      setError(null);
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : "Could not parse the uploaded resume. Try a text-based PDF or DOCX.";
+      setUploadError(message);
+    } finally {
+      setUploadPending(false);
+      if (resumeFileInputRef.current) {
+        resumeFileInputRef.current.value = "";
+      }
+    }
+  }
+
+  async function runSaveResume() {
+    if (!authenticated || resumeSavePending || !resume.trim()) return;
+
+    setResumeSavePending(true);
+    setResumeSaveError(null);
+    setResumeSaveMessage(null);
+
+    try {
+      const token = await getToken();
+      const saved = await createResume(token, {
+        name: resumeSaveName.trim() || uploadedFilename || "Uploaded resume",
+        resume_text: resume,
+      });
+      setSelectedResumeId(saved.id);
+      setResumeSaveMessage("Resume saved to your workspace.");
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : "Could not save this resume. Your parsed text is still available above.";
+      setResumeSaveError(message);
+    } finally {
+      setResumeSavePending(false);
+    }
+  }
 
   async function runAnalyze() {
     if (pending) return;
@@ -265,8 +340,9 @@ export function MatchForm() {
               Analyze a match
             </CardTitle>
             <CardDescription>
-              Paste resume text and a job description. Career Match returns a
-              relevance score with skill evidence from the selected matcher.
+              Upload a PDF or DOCX resume, or paste resume text manually. Career
+              Match returns a relevance score with skill evidence from the
+              selected matcher.
             </CardDescription>
             {isLoaded && !authenticated ? (
               <p
@@ -304,22 +380,110 @@ export function MatchForm() {
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor={resumeId}>Resume text</Label>
+                  <div className="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <input
+                        ref={resumeFileInputRef}
+                        id={resumeUploadId}
+                        type="file"
+                        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        className="sr-only"
+                        disabled={pending || uploadPending}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          if (file) {
+                            void runResumeUpload(file);
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={pending || uploadPending}
+                        aria-busy={uploadPending}
+                        onClick={() => resumeFileInputRef.current?.click()}
+                      >
+                        {uploadPending ? "Parsing resume…" : "Upload PDF or DOCX"}
+                      </Button>
+                      {uploadedFilename ? (
+                        <p className="text-sm text-primary" role="status">
+                          Parsed <span className="font-medium">{uploadedFilename}</span>
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          {authenticated
+                            ? "Text-based PDF or DOCX up to 2 MB. Scanned PDFs are not supported yet."
+                            : "Sign in to upload a file, or paste resume text below."}
+                        </p>
+                      )}
+                    </div>
+                    {uploadError ? (
+                      <p
+                        className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+                        role="alert"
+                      >
+                        {uploadError}
+                      </p>
+                    ) : null}
+                  </div>
                   <Textarea
                     id={resumeId}
                     value={resume}
                     onChange={(event) => {
                       setResume(event.target.value);
                       setSelectedResumeId(null);
+                      setUploadedFilename(null);
+                      setUploadError(null);
                     }}
                     placeholder="Paste the full resume text…"
                     className="min-h-56 resize-y bg-card md:min-h-72"
-                    disabled={pending}
+                    disabled={pending || uploadPending}
                     aria-invalid={Boolean(error) && !resume.trim()}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Paste text for this milestone. PDF/DOCX upload is not
-                    supported yet.
-                  </p>
+                  {authenticated ? (
+                    <div className="space-y-2 rounded-lg border border-border/80 bg-muted/10 p-3">
+                      <Label htmlFor={resumeSaveNameId}>Save parsed resume (optional)</Label>
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <Input
+                          id={resumeSaveNameId}
+                          value={resumeSaveName}
+                          onChange={(event) => setResumeSaveName(event.target.value)}
+                          placeholder="Resume name"
+                          disabled={pending || uploadPending || resumeSavePending}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={
+                            pending ||
+                            uploadPending ||
+                            resumeSavePending ||
+                            !resume.trim()
+                          }
+                          aria-busy={resumeSavePending}
+                          onClick={() => void runSaveResume()}
+                        >
+                          {resumeSavePending ? "Saving…" : "Save resume"}
+                        </Button>
+                      </div>
+                      {resumeSaveMessage ? (
+                        <p className="text-sm text-primary" role="status">
+                          {resumeSaveMessage}{" "}
+                          <Link
+                            href="/dashboard#resumes"
+                            className="font-medium text-career-green underline-offset-4 hover:underline"
+                          >
+                            Manage resumes
+                          </Link>
+                        </p>
+                      ) : null}
+                      {resumeSaveError ? (
+                        <p className="text-sm text-destructive" role="alert">
+                          {resumeSaveError}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={jobId}>Job description</Label>
@@ -411,6 +575,8 @@ export function MatchForm() {
                     setResume(SAMPLE_RESUME);
                     setJob(SAMPLE_JOB);
                     setSelectedResumeId(null);
+                    setUploadedFilename(null);
+                    setUploadError(null);
                     setError(null);
                     setResult(null);
                     setSaveMessage(null);
