@@ -150,6 +150,7 @@ python scripts/start_api_production.py
 - Match: `POST /api/v1/match`
 - Resume parse (authenticated): `POST /api/v1/resumes/parse` (`multipart/form-data`)
 - Job discovery (authenticated): `POST /api/v1/jobs/discover`
+- Resume tailoring (authenticated): `POST /api/v1/resumes/tailor`
 - OpenAPI docs: `/docs`
 
 Default matcher is **semantic**. Optional body field `matcher` may be
@@ -197,6 +198,22 @@ Flow:
 No live job feed is bundled in this milestone. When the catalog is empty, the UI
 shows an honest empty state. Automated tests use synthetic fixture providers only.
 
+### Grounded resume tailoring
+
+Authenticated users can tailor a saved resume for a target job from
+`/dashboard/tailor` (also linked from job discovery and match results).
+
+Flow:
+
+1. Resume evidence is mapped against job requirements (supported, partial,
+   equivalent, unsupported, negated)
+2. Alignment score uses the existing matcher pipeline — not an ATS pass probability
+3. Deterministic rewrite suggestions introduce only supported terminology
+4. Optional LLM phrasing runs only when `CAREER_MATCH_LLM_API_KEY` is configured
+5. Users review/accept suggestions and copy revised text — **original resumes are never overwritten**
+
+Career Match does not fabricate missing experience and does not guarantee ATS passage.
+
 ## Product access modes
 
 | Mode | How | What you get |
@@ -212,6 +229,7 @@ Authenticated users can:
 
 - save and manage resumes (upload PDF/DOCX or paste text)
 - discover and rank jobs from `/dashboard/jobs` (when a provider catalog is configured)
+- tailor resumes for a target job from `/dashboard/tailor`
 - save job opportunities manually
 - save a successful analysis via **Save analysis** (not automatic)
 - open recent matches and history on `/dashboard`

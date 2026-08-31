@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ApiError } from "@/lib/api";
 import { saveMatchDraft } from "@/lib/match-draft";
+import { saveTailorContext } from "@/lib/tailor-context";
 import {
   createJob,
   discoverJobs,
@@ -113,6 +114,17 @@ export function JobDiscovery() {
     } finally {
       setPending(false);
     }
+  }
+
+  function tailorForJob(result: RankedJobResult) {
+    saveTailorContext({
+      resumeId: selectedResumeId,
+      jobDescription: result.job.description,
+      jobTitle: result.job.title,
+    });
+    router.push(
+      `/dashboard/tailor?resumeId=${encodeURIComponent(selectedResumeId)}`,
+    );
   }
 
   function viewMatch(result: RankedJobResult) {
@@ -391,6 +403,13 @@ export function JobDiscovery() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => tailorForJob(result)}
+                      >
+                        Tailor resume
+                      </Button>
                       <Button
                         type="button"
                         variant="outline"

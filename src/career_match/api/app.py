@@ -35,6 +35,7 @@ from career_match.api.settings import (
     apply_model_cache_env,
     get_cors_allow_origins,
 )
+from career_match.api.tailor_routes import router as tailor_router
 from career_match.core.exceptions import CareerMatchError
 
 
@@ -66,6 +67,7 @@ def create_app() -> FastAPI:
     )
     application.include_router(job_discovery_router)
     application.include_router(persistence_router)
+    application.include_router(tailor_router)
     application.include_router(resume_parse_router)
 
     @application.exception_handler(RequestValidationError)

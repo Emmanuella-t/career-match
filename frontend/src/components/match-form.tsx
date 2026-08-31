@@ -2,7 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { AuthGateModal } from "@/components/auth-gate-modal";
@@ -43,6 +43,7 @@ import {
   loadMatchDraft,
   saveMatchDraft,
 } from "@/lib/match-draft";
+import { saveTailorContext } from "@/lib/tailor-context";
 import {
   buildSaveMatchPayload,
   createResume,
@@ -92,6 +93,7 @@ export function MatchForm() {
   const resumeFileInputRef = useRef<HTMLInputElement>(null);
 
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const authenticated = Boolean(isSignedIn);
 
@@ -606,6 +608,23 @@ export function MatchForm() {
                     onClick={() => void runSaveAnalysis()}
                   >
                     {savePending ? "Saving…" : "Save analysis"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      saveTailorContext({
+                        resumeId: selectedResumeId ?? undefined,
+                        jobDescription: job,
+                        jobTitle: jobTitle || undefined,
+                      });
+                      const resumeQuery = selectedResumeId
+                        ? `?resumeId=${encodeURIComponent(selectedResumeId)}`
+                        : "";
+                      router.push(`/dashboard/tailor${resumeQuery}`);
+                    }}
+                  >
+                    Tailor for this job
                   </Button>
                   {saveMessage ? (
                     <p className="text-sm text-primary" role="status">

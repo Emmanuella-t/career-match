@@ -284,6 +284,65 @@ export async function discoverJobs(
   });
 }
 
+export type TailorTarget = "summary" | "experience" | "projects" | "skills" | "all";
+
+export type EvidenceMapEntry = {
+  requirement: string;
+  status: string;
+  supporting_text: string | null;
+  support_reason: string;
+  confidence: string;
+};
+
+export type RewriteSuggestionRecord = {
+  section: string;
+  original_text: string;
+  suggested_text: string;
+  keywords_introduced: string[];
+  support_reason: string;
+  support_level: string;
+};
+
+export type ResumeTailorPayload = {
+  resume_id?: string;
+  resume_text?: string;
+  job_id?: string;
+  job_description?: string;
+  target?: TailorTarget;
+  matcher?: "semantic" | "hybrid" | "lexical";
+};
+
+export type ResumeTailorResponse = {
+  original_alignment_score: number;
+  matcher: string;
+  matcher_version: string;
+  semantic_score: number | null;
+  tfidf_score: number | null;
+  skill_overlap_score: number | null;
+  supported_keywords: string[];
+  unsupported_keywords: string[];
+  missing_requirements: string[];
+  evidence_map: EvidenceMapEntry[];
+  rewrite_suggestions: RewriteSuggestionRecord[];
+  warnings: string[];
+  disclaimer: string;
+  resume_id: string | null;
+  job_id: string | null;
+  rewrite_generation_available: boolean;
+  llm_rewrite_available: boolean;
+};
+
+export async function tailorResume(
+  token: string | null,
+  payload: ResumeTailorPayload,
+): Promise<ResumeTailorResponse> {
+  return apiFetch<ResumeTailorResponse>("/api/v1/resumes/tailor", {
+    method: "POST",
+    token: requireToken(token),
+    body: payload,
+  });
+}
+
 /** Build a save payload from a live match response + job context. */
 export function buildSaveMatchPayload(args: {
   result: MatchResponse;

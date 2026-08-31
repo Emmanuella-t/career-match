@@ -185,3 +185,93 @@ class JobDiscoverResponse(BaseModel):
     disclaimer: str = SCORE_DISCLAIMER
     resume_id: UUID | None = None
     source: str
+
+
+TailorTarget = Literal["summary", "experience", "projects", "skills", "all"]
+
+
+class ResumeTailorRequest(BaseModel):
+    """Input for grounded resume tailoring against a target job."""
+
+    resume_id: UUID | None = None
+    resume_text: str | None = None
+    job_id: UUID | None = None
+    job_description: str | None = None
+    target: TailorTarget = "all"
+    matcher: MatcherName = Field(
+        default=DEFAULT_MATCHER,  # type: ignore[assignment]
+        description="Matcher used for alignment scoring (default semantic).",
+    )
+
+    @field_validator("resume_text", "job_description")
+    @classmethod
+    def _bounded_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("text must be a non-empty string after stripping whitespace")
+        if len(cleaned) > MAX_TEXT_CHARS:
+            raise ValueError(
+                f"text exceeds maximum length of {MAX_TEXT_CHARS} characters"
+            )
+        return cleaned
+
+    @field_validator("matcher")
+    @classmethod
+    def _supported_matcher_tailor(cls, value: str) -> str:
+        if value not in SUPPORTED_MATCHERS:
+            raise ValueError(
+                f"unsupported matcher {value!r}; "
+                f"supported values: {', '.join(SUPPORTED_MATCHERS)}"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def _sources(self) -> ResumeTailorRequest:
+        if self.resume_id is None and self.resume_text is None:
+            raise ValueError("either resume_id or resume_text is required")
+        if self.resume_id is not None and self.resume_text is not None:
+            raise ValueError("provide resume_id or resume_text, not both")
+        if self.job_id is None and self.job_description is None:
+            raise ValueError("either job_id or job_description is required")
+        if self.job_id is not None and self.job_description is not None:
+            raise ValueError("provide job_id or job_description, not both")
+        return self
+
+
+class EvidenceMapEntry(BaseModel):
+    requirement: str
+    status: str
+    supporting_text: str | None = None
+    support_reason: str
+    confidence: str
+
+
+class RewriteSuggestionResponse(BaseModel):
+    section: str
+    original_text: str
+    suggested_text: str
+    keywords_introduced: list[str] = Field(default_factory=list)
+    support_reason: str
+    support_level: str
+
+
+class ResumeTailorResponse(BaseModel):
+    original_alignment_score: float
+    matcher: str
+    matcher_version: str
+    semantic_score: float | None = None
+    tfidf_score: float | None = None
+    skill_overlap_score: float | None = None
+    supported_keywords: list[str]
+    unsupported_keywords: list[str]
+    missing_requirements: list[str]
+    evidence_map: list[EvidenceMapEntry]
+    rewrite_suggestions: list[RewriteSuggestionResponse]
+    warnings: list[str] = Field(default_factory=list)
+    disclaimer: str
+    resume_id: UUID | None = None
+    job_id: UUID | None = None
+    rewrite_generation_available: bool = True
+    llm_rewrite_available: bool = False
