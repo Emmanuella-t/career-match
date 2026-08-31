@@ -149,6 +149,7 @@ python scripts/start_api_production.py
 - Ready: `GET /ready` (does not force MiniLM load)
 - Match: `POST /api/v1/match`
 - Resume parse (authenticated): `POST /api/v1/resumes/parse` (`multipart/form-data`)
+- Job discovery (authenticated): `POST /api/v1/jobs/discover`
 - OpenAPI docs: `/docs`
 
 Default matcher is **semantic**. Optional body field `matcher` may be
@@ -174,6 +175,28 @@ resume text manually; file upload requires sign-in because parsing is an
 authenticated endpoint. Parsed text is not persisted automatically — use
 **Save resume** on `/match` or the dashboard resumes section.
 
+### Job discovery and ranking
+
+Authenticated users can rank available job opportunities against a saved resume
+from `/dashboard/jobs`.
+
+Flow:
+
+1. Resume upload/parsing or manual paste → save resume
+2. Choose a saved resume on **Discover Jobs**
+3. `POST /api/v1/jobs/discover` ranks catalog jobs with the existing matcher
+4. Results show relevance score, matched skills, gaps, and component scores
+5. **View match** opens `/match` with the job loaded; **Save job** uses existing
+   `saved_jobs` persistence
+
+| Concept | Table / route | Purpose |
+| --- | --- | --- |
+| Discoverable jobs | `job_opportunities` | Provider-neutral catalog (empty until a real feed syncs) |
+| Saved jobs | `saved_jobs` / `POST /api/v1/jobs` | User-curated bookmarks |
+
+No live job feed is bundled in this milestone. When the catalog is empty, the UI
+shows an honest empty state. Automated tests use synthetic fixture providers only.
+
 ## Product access modes
 
 | Mode | How | What you get |
@@ -188,6 +211,7 @@ description, and matcher selection in `sessionStorage` so work is not lost.
 Authenticated users can:
 
 - save and manage resumes (upload PDF/DOCX or paste text)
+- discover and rank jobs from `/dashboard/jobs` (when a provider catalog is configured)
 - save job opportunities manually
 - save a successful analysis via **Save analysis** (not automatic)
 - open recent matches and history on `/dashboard`

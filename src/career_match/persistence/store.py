@@ -9,6 +9,7 @@ from uuid import UUID, uuid4
 
 from career_match.persistence.errors import PersistenceNotConfiguredError, RecordNotFoundError
 from career_match.persistence.schemas import (
+    JobOpportunityRecord,
     MatchAnalysisCreate,
     MatchAnalysisRecord,
     ProfileUpsert,
@@ -67,6 +68,14 @@ class PersistenceStore(Protocol):
 
     def delete_job(self, clerk_user_id: str, job_id: UUID) -> None: ...
 
+    def list_job_opportunities(
+        self,
+        *,
+        location: str | None = None,
+        employment_type: str | None = None,
+        limit: int | None = None,
+    ) -> list[JobOpportunityRecord]: ...
+
 
 class InMemoryPersistenceStore:
     """Thread-safe store for unit tests (no database)."""
@@ -77,6 +86,7 @@ class InMemoryPersistenceStore:
         self.resumes: dict[UUID, ResumeRecord] = {}
         self.matches: dict[UUID, MatchAnalysisRecord] = {}
         self.jobs: dict[UUID, SavedJobRecord] = {}
+        self.job_opportunities: list[JobOpportunityRecord] = []
 
     def upsert_profile(self, clerk_user_id: str, payload: ProfileUpsert) -> UserProfile:
         with self._lock:
@@ -266,6 +276,32 @@ class InMemoryPersistenceStore:
             if record is None or record.clerk_user_id != clerk_user_id:
                 raise RecordNotFoundError("job not found")
             del self.jobs[job_id]
+
+    def list_job_opportunities(
+        self,
+        *,
+        location: str | None = None,
+        employment_type: str | None = None,
+        limit: int | None = None,
+    ) -> list[JobOpportunityRecord]:
+        with self._lock:
+            rows = list(self.job_opportunities)
+        if location:
+            needle = location.strip().lower()
+            rows = [
+                row for row in rows if row.location and needle in row.location.lower()
+            ]
+        if employment_type:
+            target = employment_type.strip().lower()
+            rows = [
+                row
+                for row in rows
+                if row.employment_type and row.employment_type.lower() == target
+            ]
+        rows = sorted(rows, key=lambda row: row.updated_at, reverse=True)
+        if limit is not None:
+            rows = rows[:limit]
+        return rows
 
 
 def get_persistence_store(override: PersistenceStore | None = None) -> PersistenceStore:

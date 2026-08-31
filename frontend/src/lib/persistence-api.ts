@@ -86,6 +86,52 @@ export type SaveMatchPayload = {
   disclaimer?: string | null;
 };
 
+export type JobOpportunityRecord = {
+  id: string;
+  title: string;
+  company: string | null;
+  location: string | null;
+  description: string;
+  source: string;
+  source_url: string | null;
+  apply_url: string | null;
+  employment_type: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type RankedJobResult = {
+  job: JobOpportunityRecord;
+  overall_score: number;
+  matched_skills: string[];
+  missing_skills: string[];
+  weak_or_negated_skills: string[];
+  matcher: string;
+  matcher_version: string;
+  semantic_score: number | null;
+  tfidf_score: number | null;
+  skill_overlap_score: number | null;
+  disclaimer: string;
+};
+
+export type JobDiscoverPayload = {
+  resume_id?: string;
+  resume_text?: string;
+  limit?: number;
+  location?: string;
+  employment_type?: string;
+  matcher?: "semantic" | "hybrid" | "lexical";
+};
+
+export type JobDiscoverResponse = {
+  results: RankedJobResult[];
+  matcher: string;
+  matcher_version: string;
+  disclaimer: string;
+  resume_id: string | null;
+  source: string;
+};
+
 function requireToken(token: string | null | undefined): string {
   if (!token) {
     throw new Error("authentication required");
@@ -224,6 +270,17 @@ export async function deleteJob(
   await apiFetch<void>(`/api/v1/jobs/${jobId}`, {
     method: "DELETE",
     token: requireToken(token),
+  });
+}
+
+export async function discoverJobs(
+  token: string | null,
+  payload: JobDiscoverPayload,
+): Promise<JobDiscoverResponse> {
+  return apiFetch<JobDiscoverResponse>("/api/v1/jobs/discover", {
+    method: "POST",
+    token: requireToken(token),
+    body: payload,
   });
 }
 

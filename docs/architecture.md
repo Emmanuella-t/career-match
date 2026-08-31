@@ -34,7 +34,8 @@ FastAPI `/api/v1/match`  →  ML matcher  →  results UI
             ↓ (optional Save analysis / resume / job CRUD)
 Clerk JWT verified on FastAPI
             ↓
-Postgres tables: user_profiles, resumes, match_analyses, saved_jobs
+Postgres tables: user_profiles, resumes, match_analyses, saved_jobs,
+job_opportunities (discoverable catalog)
 ```
 
 **Separated concerns**
@@ -196,6 +197,7 @@ Tailwind, shadcn/ui). Routes:
 | `/login` | Public | Clerk sign-in |
 | `/signup` | Public | Clerk sign-up |
 | `/dashboard` | Protected | Authenticated workspace shell |
+| `/dashboard/jobs` | Protected | Rank discoverable jobs for a saved resume |
 | `/architecture` | Public | Product-language architecture |
 
 **Auth:** Clerk (`@clerk/nextjs`) — email/password sessions, protected
@@ -203,7 +205,7 @@ Tailwind, shadcn/ui). Routes:
 storing passwords in this monorepo.
 
 **Persistence:** Neon Postgres (`user_profiles`, `resumes`,
-`match_analyses`, `saved_jobs`) via SQLAlchemy + psycopg. FastAPI verifies
+`match_analyses`, `saved_jobs`, `job_opportunities`) via SQLAlchemy + psycop. FastAPI verifies
 Clerk Bearer tokens and scopes every query to `clerk_user_id`.
 `DATABASE_URL` is backend-only. Authenticated users save analyses explicitly
 via **Save analysis**; guests never write to the database.
@@ -220,10 +222,18 @@ Authenticated parsing uses `POST /api/v1/resumes/parse` (in-memory; 2 MiB cap;
 text-based PDF/DOCX only — no OCR for scanned PDFs). Default matcher is
 semantic. Scores are not hiring probabilities.
 
+**Job discovery:** authenticated `POST /api/v1/jobs/discover` loads the user's
+resume, reads available jobs from a `JobSource` provider (Postgres catalog by
+default), and ranks them with the same matcher pipeline as `/match`. Discoverable
+jobs live in `job_opportunities`; user bookmarks remain in `saved_jobs`. No live
+external job feed ships in this milestone — production starts with an empty
+catalog until a provider sync is added. Tests inject synthetic in-memory sources.
+
 Configure the API base with `NEXT_PUBLIC_API_URL` (default
 `http://localhost:8000`). Clerk keys: see `frontend/.env.example`.
 Persistence: `DATABASE_URL`, `CLERK_ISSUER` on the API host (root
-`.env.example`). Schema: `migrations/0001_initial_persistence.sql`.
+`.env.example`). Schema: `migrations/0001_initial_persistence.sql` and
+`migrations/0002_job_opportunities.sql`.
 Local workflow: run uvicorn and `npm run dev`, then open `http://localhost:3000`.
 
 ## What this repository is not
