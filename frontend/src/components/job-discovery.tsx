@@ -53,6 +53,9 @@ export function JobDiscovery() {
   const [results, setResults] = useState<RankedJobResult[]>([]);
   const [disclaimer, setDisclaimer] = useState<string | null>(null);
   const [sourceName, setSourceName] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string | null>(null);
+  const [candidateCount, setCandidateCount] = useState<number | null>(null);
+  const [providerMessage, setProviderMessage] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<Record<string, "idle" | "saving" | "saved" | "error">>(
     {},
   );
@@ -93,6 +96,9 @@ export function JobDiscovery() {
     setResults([]);
     setDisclaimer(null);
     setSourceName(null);
+    setSearchQuery(null);
+    setCandidateCount(null);
+    setProviderMessage(null);
     setSaveState({});
 
     try {
@@ -105,6 +111,9 @@ export function JobDiscovery() {
       setResults(response.results);
       setDisclaimer(response.disclaimer);
       setSourceName(response.source);
+      setSearchQuery(response.search_query);
+      setCandidateCount(response.candidate_count);
+      setProviderMessage(response.provider_message);
     } catch (err) {
       const message =
         err instanceof ApiError
@@ -168,9 +177,9 @@ export function JobDiscovery() {
           Find matching jobs
         </h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Choose one of your saved resumes to rank available job opportunities by
-          the same evidence-aware matcher used on the Match page. Scores reflect
-          resume-to-job relevance, not hiring probability.
+          Choose one of your saved resumes to discover job opportunities and rank
+          them with the same evidence-aware matcher used on the Match page. Scores
+          reflect resume-to-job relevance, not hiring probability.
         </p>
       </div>
 
@@ -281,14 +290,16 @@ export function JobDiscovery() {
 
       {!pending && results.length === 0 && sourceName ? (
         <Card className="border-border/80 shadow-none">
-          <CardContent className="py-10 text-center">
+          <CardContent className="py-10 text-center space-y-3">
             <p className="text-sm font-medium text-foreground">
-              No job source is configured yet.
+              {providerMessage ??
+                "We couldn't find matching jobs for this search. Try a broader location or a different resume."}
             </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              The discovery catalog is empty until a real job provider sync is
-              connected. You can still save jobs manually from your dashboard.
-            </p>
+            {searchQuery ? (
+              <p className="text-sm text-muted-foreground">
+                Search query: <span className="font-medium">{searchQuery}</span>
+              </p>
+            ) : null}
           </CardContent>
         </Card>
       ) : null}
@@ -299,8 +310,30 @@ export function JobDiscovery() {
             <h2 className="text-xl font-semibold tracking-tight">
               Ranked opportunities
             </h2>
+            {searchQuery ? (
+              <p className="text-sm text-muted-foreground">
+                Search query: <span className="font-medium">{searchQuery}</span>
+                {candidateCount !== null
+                  ? ` · ${candidateCount} candidate listing${candidateCount === 1 ? "" : "s"} ranked`
+                  : null}
+              </p>
+            ) : null}
             {disclaimer ? (
               <p className="text-xs text-muted-foreground">{disclaimer}</p>
+            ) : null}
+            {sourceName === "adzuna" ? (
+              <p className="text-xs text-muted-foreground">
+                Listings supplied by{" "}
+                <a
+                  href="https://www.adzuna.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-career-green underline-offset-4 hover:underline"
+                >
+                  Adzuna
+                </a>
+                . Career Match computes match scores independently.
+              </p>
             ) : null}
           </div>
           <div className="grid gap-4">
@@ -321,6 +354,7 @@ export function JobDiscovery() {
                           {result.job.employment_type
                             ? ` · ${result.job.employment_type}`
                             : ""}
+                          {result.job.source ? ` · ${result.job.source}` : ""}
                         </CardDescription>
                       </div>
                       <div className="rounded-lg border border-career-green/25 bg-mint/15 px-3 py-2 text-center">
@@ -429,14 +463,14 @@ export function JobDiscovery() {
                             ? "Saved"
                             : "Save job"}
                       </Button>
-                      {result.job.source_url ? (
+                      {result.job.apply_url || result.job.source_url ? (
                         <a
-                          href={result.job.source_url}
+                          href={result.job.apply_url ?? result.job.source_url ?? "#"}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener noreferrer"
                           className="inline-flex h-9 items-center rounded-lg border border-input px-3 text-sm hover:bg-muted/40"
                         >
-                          Source listing
+                          View job on provider site ↗
                         </a>
                       ) : null}
                     </div>

@@ -189,25 +189,47 @@ authenticated endpoint. Parsed text is not persisted automatically — use
 
 ### Job discovery and ranking
 
-Authenticated users can rank available job opportunities against a saved resume
+Authenticated users can discover and rank job opportunities against a saved resume
 from `/dashboard/jobs`.
+
+Architecture:
+
+```
+resume evidence
+  → deterministic search-query builder
+  → Adzuna candidate retrieval (when configured)
+  → Career Match matcher ranks every candidate independently
+  → explainable results (score, matched skills, gaps)
+```
 
 Flow:
 
 1. Resume upload/parsing or manual paste → save resume
 2. Choose a saved resume on **Discover Jobs**
-3. `POST /api/v1/jobs/discover` ranks catalog jobs with the existing matcher
-4. Results show relevance score, matched skills, gaps, and component scores
-5. **View match** opens `/match` with the job loaded; **Save job** uses existing
-   `saved_jobs` persistence
+3. Career Match builds a concise search query from resume skills/role evidence
+4. `POST /api/v1/jobs/discover` retrieves candidates and ranks them with the
+   existing matcher (provider order is **not** the final ranking)
+5. Results show Career Match relevance score, matched skills, gaps, and component
+   scores
+6. **View match**, **Tailor resume**, **Save job**, or open the provider listing
 
 | Concept | Table / route | Purpose |
 | --- | --- | --- |
-| Discoverable jobs | `job_opportunities` | Provider-neutral catalog (empty until a real feed syncs) |
+| Live listings | Adzuna API (`ADZUNA_*` env) | Ephemeral candidate jobs for discovery |
+| Discoverable catalog | `job_opportunities` | Optional Postgres-backed catalog |
 | Saved jobs | `saved_jobs` / `POST /api/v1/jobs` | User-curated bookmarks |
 
-No live job feed is bundled in this milestone. When the catalog is empty, the UI
-shows an honest empty state. Automated tests use synthetic fixture providers only.
+Backend-only Adzuna configuration (never `NEXT_PUBLIC_*`):
+
+```bash
+ADZUNA_APP_ID=your_app_id
+ADZUNA_APP_KEY=your_app_key
+ADZUNA_COUNTRY=us
+```
+
+When Adzuna is not configured, discovery falls back to the Postgres catalog (empty
+until synced). Adzuna supplies listings; Career Match computes match scores.
+Automated tests mock Adzuna HTTP responses — no real API calls in CI.
 
 ### Grounded resume tailoring
 

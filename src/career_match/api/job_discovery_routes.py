@@ -12,7 +12,7 @@ from career_match.api.job_discovery_service import JobDiscoveryService
 from career_match.api.persistence_routes import get_store
 from career_match.api.schemas import JobDiscoverRequest, JobDiscoverResponse
 from career_match.api.services import MatcherService
-from career_match.jobs.sources import PostgresJobOpportunitySource
+from career_match.jobs.factory import create_job_source
 from career_match.persistence.errors import (
     PersistenceNotConfiguredError,
     PersistenceUnavailableError,
@@ -28,9 +28,7 @@ StoreDep = Annotated[PersistenceStore, Depends(get_store)]
 
 def get_job_source(request: Request, store: StoreDep):
     override = getattr(request.app.state, "job_source_override", None)
-    if override is not None:
-        return override
-    return PostgresJobOpportunitySource(store)
+    return create_job_source(store, override=override)
 
 
 def get_discovery_service(
@@ -51,8 +49,8 @@ def get_discovery_service(
     response_model=JobDiscoverResponse,
     summary="Rank discoverable jobs for a resume",
     description=(
-        "Load the authenticated user's resume, score available job opportunities "
-        "with the existing matcher pipeline, and return ranked explainable results. "
+        "Load the authenticated user's resume, retrieve candidate job opportunities "
+        "from the configured provider, and rank them with the existing matcher pipeline. "
         "Scores reflect resume-to-job relevance, not hiring probability."
     ),
 )

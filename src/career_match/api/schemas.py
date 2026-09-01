@@ -185,6 +185,9 @@ class JobDiscoverResponse(BaseModel):
     disclaimer: str = SCORE_DISCLAIMER
     resume_id: UUID | None = None
     source: str
+    search_query: str | None = None
+    candidate_count: int = 0
+    provider_message: str | None = None
 
 
 TailorTarget = Literal["summary", "experience", "projects", "skills", "all"]

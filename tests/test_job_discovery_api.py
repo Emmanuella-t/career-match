@@ -173,6 +173,7 @@ def test_discover_empty_provider_returns_no_results(
         )
     assert response.status_code == 200
     assert response.json()["results"] == []
+    assert "couldn't find matching jobs" in response.json()["provider_message"].lower()
 
 
 def test_discover_respects_limit(client: TestClient) -> None:
@@ -260,3 +261,89 @@ def test_production_job_source_reads_empty_catalog(store: InMemoryPersistenceSto
     assert response.status_code == 200
     assert response.json()["source"] == "postgres-catalog"
     assert response.json()["results"] == []
+    assert (
+        response.json()["provider_message"]
+        == "Live job search isn't available right now. "
+        "You can still analyze and tailor jobs you add manually."
+    )
+
+
+def test_discover_catalog_with_jobs_still_ranks_without_adzuna(
+    store: InMemoryPersistenceStore,
+) -> None:
+    """Seeded Postgres catalog remains usable when Adzuna is not configured."""
+    from tests.fixtures.job_opportunities import make_synthetic_jobs
+
+    from career_match.jobs.sources import InMemoryJobSource
+
+    semantic = SemanticMatcher(encoder=_FixedEncoder())
+    service = MatcherService(semantic=semantic)
+
+    application = create_app()
+    application.state.persistence_store = store
+    application.state.clerk_identity_override = USER_A
+    application.state.job_source_override = InMemoryJobSource(make_synthetic_jobs())
+    application.state.matcher_service = service
+
+    with TestClient(application) as test_client:
+        response = test_client.post(
+            "/api/v1/jobs/discover",
+            headers=_auth_headers(),
+            json={"resume_text": PYTHON_RESUME},
+        )
+    assert response.status_code == 200
+    assert len(response.json()["results"]) == 3
+    assert response.json()["provider_message"] is None
+
+
+def test_discover_catalog_filter_no_match_returns_no_results_message(
+    store: InMemoryPersistenceStore,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Populated catalog with zero filter matches is not a provider-config issue."""
+    from tests.fixtures.job_opportunities import make_synthetic_jobs
+
+    from career_match.persistence.schemas import JobOpportunityRecord
+
+    monkeypatch.delenv("ADZUNA_APP_ID", raising=False)
+    monkeypatch.delenv("ADZUNA_APP_KEY", raising=False)
+
+    for job in make_synthetic_jobs():
+        store.job_opportunities.append(
+            JobOpportunityRecord(
+                id=job.id,
+                title=job.title,
+                company=job.company,
+                location=job.location,
+                description=job.description,
+                source=job.source,
+                source_url=job.source_url,
+                apply_url=job.apply_url,
+                employment_type=job.employment_type,
+                created_at=job.created_at,
+                updated_at=job.updated_at,
+            )
+        )
+
+    semantic = SemanticMatcher(encoder=_FixedEncoder())
+    service = MatcherService(semantic=semantic)
+
+    application = create_app()
+    application.state.persistence_store = store
+    application.state.clerk_identity_override = USER_A
+    application.state.matcher_service = service
+
+    with TestClient(application) as test_client:
+        response = test_client.post(
+            "/api/v1/jobs/discover",
+            headers=_auth_headers(),
+            json={"resume_text": PYTHON_RESUME, "location": "Antarctica"},
+        )
+    assert response.status_code == 200
+    assert response.json()["source"] == "postgres-catalog"
+    assert response.json()["results"] == []
+    assert (
+        response.json()["provider_message"]
+        == "We couldn't find matching jobs for this search. "
+        "Try a broader location or a different resume."
+    )
