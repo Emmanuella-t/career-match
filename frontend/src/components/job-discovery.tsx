@@ -3,7 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,11 +15,25 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ApiError } from "@/lib/api";
+import { ApiError, parseResumeFile } from "@/lib/api";
+import {
+  buildDiscoverPayload,
+  isDiscoverCtaEnabled,
+  onResumeSourceModeChange,
+  resolveActiveResumeText,
+  type ResumeSourceMode,
+  type UploadStatus,
+} from "@/lib/discovery-resume";
 import { saveMatchDraft } from "@/lib/match-draft";
+import {
+  mapResumeUploadError,
+  RESUME_UPLOAD_ACCEPT,
+  validateResumeFileSelection,
+} from "@/lib/resume-upload";
 import { saveTailorContext } from "@/lib/tailor-context";
 import {
   createJob,
+  createResume,
   discoverJobs,
   listResumes,
   type RankedJobResult,
@@ -36,15 +50,30 @@ function topSkills(skills: string[], count = 4): string[] {
 
 export function JobDiscovery() {
   const formId = useId();
+  const savedTabId = `${formId}-saved-tab`;
+  const uploadTabId = `${formId}-upload-tab`;
   const resumeSelectId = `${formId}-resume`;
+  const resumeUploadId = `${formId}-resume-upload`;
   const locationId = `${formId}-location`;
   const employmentId = `${formId}-employment`;
+  const uploadErrorId = `${formId}-upload-error`;
 
+  const resumeFileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const { getToken, isLoaded, isSignedIn } = useAuth();
 
+  const [resumeSourceMode, setResumeSourceMode] = useState<ResumeSourceMode>("saved");
   const [resumes, setResumes] = useState<ResumeRecord[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState("");
+  const [uploadedResumeText, setUploadedResumeText] = useState<string | null>(null);
+  const [uploadedFilename, setUploadedFilename] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus>("idle");
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [resumeSaveState, setResumeSaveState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [resumeSaveError, setResumeSaveError] = useState<string | null>(null);
+
   const [location, setLocation] = useState("");
   const [employmentType, setEmploymentType] = useState("");
   const [loadingResumes, setLoadingResumes] = useState(true);
@@ -70,6 +99,8 @@ export function JobDiscovery() {
       setResumes(rows);
       if (rows.length > 0) {
         setSelectedResumeId((current) => current || rows[0].id);
+      } else {
+        setResumeSourceMode("upload");
       }
     } catch (err) {
       const message =
@@ -84,13 +115,100 @@ export function JobDiscovery() {
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn) return;
-    /* Load resumes once Clerk session is ready. */
     /* eslint-disable-next-line react-hooks/set-state-in-effect -- async fetch on auth ready */
     void loadResumes();
   }, [isLoaded, isSignedIn, loadResumes]);
 
+  function switchResumeSourceMode(nextMode: ResumeSourceMode) {
+    if (nextMode === resumeSourceMode) return;
+    const cleanup = onResumeSourceModeChange(nextMode);
+    setResumeSourceMode(nextMode);
+    if (cleanup.clearSavedSelection) {
+      setSelectedResumeId("");
+    }
+    if (cleanup.clearUpload) {
+      setUploadedResumeText(null);
+      setUploadedFilename(null);
+      setUploadStatus("idle");
+      setUploadError(null);
+      setResumeSaveState("idle");
+      setResumeSaveError(null);
+      if (resumeFileInputRef.current) {
+        resumeFileInputRef.current.value = "";
+      }
+    }
+  }
+
+  async function runResumeUpload(file: File) {
+    if (uploadStatus === "uploading" || uploadStatus === "reading") return;
+
+    setUploadError(null);
+    setResumeSaveState("idle");
+    setResumeSaveError(null);
+
+    const validationError = validateResumeFileSelection(file);
+    if (validationError) {
+      setUploadError(validationError);
+      setUploadStatus("error");
+      return;
+    }
+
+    setUploadStatus("uploading");
+    setUploadedResumeText(null);
+    setUploadedFilename(null);
+
+    try {
+      setUploadStatus("reading");
+      const token = await getToken();
+      const parsed = await parseResumeFile(token, file);
+      setUploadedResumeText(parsed.extracted_text);
+      setUploadedFilename(parsed.filename);
+      setUploadStatus("ready");
+    } catch (err) {
+      setUploadError(mapResumeUploadError(err));
+      setUploadStatus("error");
+    } finally {
+      if (resumeFileInputRef.current) {
+        resumeFileInputRef.current.value = "";
+      }
+    }
+  }
+
+  async function saveUploadedResume() {
+    if (!uploadedResumeText?.trim() || resumeSaveState === "saving") return;
+
+    setResumeSaveState("saving");
+    setResumeSaveError(null);
+
+    try {
+      const token = await getToken();
+      const name =
+        uploadedFilename?.replace(/\.[^.]+$/, "") || uploadedFilename || "Uploaded resume";
+      const saved = await createResume(token, {
+        name,
+        resume_text: uploadedResumeText,
+      });
+      setResumes((current) => [saved, ...current.filter((row) => row.id !== saved.id)]);
+      setResumeSaveState("saved");
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.message
+          : "Could not save this resume right now. You can still find matches.";
+      setResumeSaveError(message);
+      setResumeSaveState("error");
+    }
+  }
+
   async function runDiscover() {
-    if (pending || !selectedResumeId) return;
+    const payload = buildDiscoverPayload(resumeSourceMode, {
+      selectedResumeId,
+      uploadedResumeText,
+      location,
+      employmentType,
+    });
+    if (pending || !payload) return;
+
     setPending(true);
     setError(null);
     setResults([]);
@@ -103,11 +221,7 @@ export function JobDiscovery() {
 
     try {
       const token = await getToken();
-      const response = await discoverJobs(token, {
-        resume_id: selectedResumeId,
-        location: location.trim() || undefined,
-        employment_type: employmentType.trim() || undefined,
-      });
+      const response = await discoverJobs(token, payload);
       setResults(response.results);
       setDisclaimer(response.disclaimer);
       setSourceName(response.source);
@@ -118,7 +232,7 @@ export function JobDiscovery() {
       const message =
         err instanceof ApiError
           ? err.message
-          : "Could not rank jobs for this resume. Please try again.";
+          : "Could not find matches for this resume. Please try again.";
       setError(message);
     } finally {
       setPending(false);
@@ -126,25 +240,46 @@ export function JobDiscovery() {
   }
 
   function tailorForJob(result: RankedJobResult) {
+    const resumeText = resolveActiveResumeText(
+      resumeSourceMode,
+      resumes,
+      selectedResumeId,
+      uploadedResumeText,
+    );
+    if (!resumeText) return;
+
     saveTailorContext({
-      resumeId: selectedResumeId,
+      resumeId: resumeSourceMode === "saved" ? selectedResumeId : undefined,
+      resumeText: resumeSourceMode === "upload" ? resumeText : undefined,
       jobDescription: result.job.description,
       jobTitle: result.job.title,
     });
-    router.push(
-      `/dashboard/tailor?resumeId=${encodeURIComponent(selectedResumeId)}`,
-    );
+    const tailorPath =
+      resumeSourceMode === "saved" && selectedResumeId
+        ? `/dashboard/tailor?resumeId=${encodeURIComponent(selectedResumeId)}`
+        : "/dashboard/tailor";
+    router.push(tailorPath);
   }
 
   function viewMatch(result: RankedJobResult) {
-    const resume = resumes.find((row) => row.id === selectedResumeId);
-    if (!resume) return;
+    const resumeText = resolveActiveResumeText(
+      resumeSourceMode,
+      resumes,
+      selectedResumeId,
+      uploadedResumeText,
+    );
+    if (!resumeText) return;
+
     saveMatchDraft({
-      resume: resume.resume_text,
+      resume: resumeText,
       job: result.job.description,
       matcher: "semantic",
     });
-    router.push(`/match?resumeId=${encodeURIComponent(selectedResumeId)}`);
+    const matchPath =
+      resumeSourceMode === "saved" && selectedResumeId
+        ? `/match?resumeId=${encodeURIComponent(selectedResumeId)}`
+        : "/match";
+    router.push(matchPath);
   }
 
   async function saveJob(result: RankedJobResult) {
@@ -166,6 +301,21 @@ export function JobDiscovery() {
   }
 
   const selectedResume = resumes.find((row) => row.id === selectedResumeId);
+  const discoverReady = isDiscoverCtaEnabled(
+    resumeSourceMode,
+    selectedResumeId,
+    uploadedResumeText,
+    uploadStatus,
+  );
+
+  const uploadStatusLabel =
+    uploadStatus === "uploading"
+      ? "Uploading..."
+      : uploadStatus === "reading"
+        ? "Reading your resume..."
+        : uploadStatus === "ready"
+          ? "Resume ready ✓"
+          : null;
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 sm:py-12">
@@ -177,98 +327,243 @@ export function JobDiscovery() {
           Find matching jobs
         </h1>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Choose one of your saved resumes to discover job opportunities and rank
-          them with the same evidence-aware matcher used on the Match page. Scores
-          reflect resume-to-job relevance, not hiring probability.
+          Use a saved resume or upload one now, then find roles ranked by the same
+          evidence-aware matcher used on the Match page. Scores reflect resume-to-job
+          relevance, not hiring probability.
         </p>
       </div>
 
       <Card className="border-border/80 shadow-none">
         <CardHeader>
-          <CardTitle className="text-xl">Resume and filters</CardTitle>
+          <CardTitle className="text-xl">Choose your resume</CardTitle>
           <CardDescription>
-            Discovery is authenticated and uses your saved resumes. Add a resume
-            on the dashboard if you need a new profile.
+            Pick a saved resume or upload a PDF or DOCX to get started. Saving is
+            optional — you can find matches without storing your resume.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {loadingResumes ? (
-            <p className="text-sm text-muted-foreground">Loading resumes…</p>
-          ) : resumes.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border bg-muted/40 px-4 py-6 text-sm text-muted-foreground">
-              No saved resumes yet.{" "}
-              <Link
-                href="/dashboard#resumes"
-                className="font-medium text-career-green underline-offset-4 hover:underline"
-              >
-                Add a resume
-              </Link>{" "}
-              or{" "}
-              <Link
-                href="/match"
-                className="font-medium text-career-green underline-offset-4 hover:underline"
-              >
-                analyze a match
-              </Link>{" "}
-              first.
+        <CardContent className="space-y-6">
+          <div
+            role="tablist"
+            aria-label="Resume source"
+            className="grid gap-3 sm:grid-cols-2"
+          >
+            <button
+              type="button"
+              role="tab"
+              id={savedTabId}
+              aria-selected={resumeSourceMode === "saved"}
+              aria-controls={`${formId}-saved-panel`}
+              disabled={pending || uploadStatus === "uploading" || uploadStatus === "reading"}
+              className={`rounded-xl border px-4 py-4 text-left transition-colors ${
+                resumeSourceMode === "saved"
+                  ? "border-career-green/40 bg-mint/15"
+                  : "border-border bg-card hover:bg-muted/30"
+              }`}
+              onClick={() => switchResumeSourceMode("saved")}
+            >
+              <p className="font-medium text-foreground">Use a saved resume</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Select from resumes you have already saved.
+              </p>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id={uploadTabId}
+              aria-selected={resumeSourceMode === "upload"}
+              aria-controls={`${formId}-upload-panel`}
+              disabled={pending || uploadStatus === "uploading" || uploadStatus === "reading"}
+              className={`rounded-xl border px-4 py-4 text-left transition-colors ${
+                resumeSourceMode === "upload"
+                  ? "border-career-green/40 bg-mint/15"
+                  : "border-border bg-card hover:bg-muted/30"
+              }`}
+              onClick={() => switchResumeSourceMode("upload")}
+            >
+              <p className="font-medium text-foreground">Upload a resume</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Upload a PDF or DOCX without saving it first.
+              </p>
+            </button>
+          </div>
+
+          {resumeSourceMode === "saved" ? (
+            <div
+              id={`${formId}-saved-panel`}
+              role="tabpanel"
+              aria-labelledby={savedTabId}
+              className="space-y-3"
+            >
+              {loadingResumes ? (
+                <p className="text-sm text-muted-foreground">Loading resumes…</p>
+              ) : resumes.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-border bg-muted/40 px-4 py-6 text-sm text-muted-foreground">
+                  No saved resumes yet. Switch to{" "}
+                  <button
+                    type="button"
+                    className="font-medium text-career-green underline-offset-4 hover:underline"
+                    onClick={() => switchResumeSourceMode("upload")}
+                  >
+                    Upload a resume
+                  </button>{" "}
+                  or{" "}
+                  <Link
+                    href="/dashboard#resumes"
+                    className="font-medium text-career-green underline-offset-4 hover:underline"
+                  >
+                    add one on your dashboard
+                  </Link>
+                  .
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor={resumeSelectId}>Saved resume</Label>
+                    <select
+                      id={resumeSelectId}
+                      value={selectedResumeId}
+                      onChange={(event) => setSelectedResumeId(event.target.value)}
+                      disabled={pending}
+                      className="h-9 w-full rounded-lg border border-input bg-card px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {resumes.map((resume) => (
+                        <option key={resume.id} value={resume.id}>
+                          {resume.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {selectedResume ? (
+                    <p className="text-xs text-muted-foreground">
+                      Using &ldquo;{selectedResume.name}&rdquo; (
+                      {selectedResume.resume_text.length.toLocaleString()} characters).
+                    </p>
+                  ) : null}
+                </>
+              )}
             </div>
           ) : (
-            <>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2 md:col-span-1">
-                  <Label htmlFor={resumeSelectId}>Saved resume</Label>
-                  <select
-                    id={resumeSelectId}
-                    value={selectedResumeId}
-                    onChange={(event) => setSelectedResumeId(event.target.value)}
-                    disabled={pending}
-                    className="h-9 w-full rounded-lg border border-input bg-card px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+            <div
+              id={`${formId}-upload-panel`}
+              role="tabpanel"
+              aria-labelledby={uploadTabId}
+              className="space-y-3"
+            >
+              <div className="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-4">
+                <Label htmlFor={resumeUploadId}>Resume file</Label>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <input
+                    ref={resumeFileInputRef}
+                    id={resumeUploadId}
+                    type="file"
+                    accept={RESUME_UPLOAD_ACCEPT}
+                    className="sr-only"
+                    disabled={
+                      pending || uploadStatus === "uploading" || uploadStatus === "reading"
+                    }
+                    aria-invalid={uploadError ? true : undefined}
+                    aria-describedby={uploadError ? uploadErrorId : undefined}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) {
+                        void runResumeUpload(file);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={
+                      pending || uploadStatus === "uploading" || uploadStatus === "reading"
+                    }
+                    aria-busy={uploadStatus === "uploading" || uploadStatus === "reading"}
+                    onClick={() => resumeFileInputRef.current?.click()}
                   >
-                    {resumes.map((resume) => (
-                      <option key={resume.id} value={resume.id}>
-                        {resume.name}
-                      </option>
-                    ))}
-                  </select>
+                    Choose PDF or DOCX
+                  </Button>
+                  {uploadStatusLabel ? (
+                    <p className="text-sm text-primary" role="status">
+                      {uploadStatusLabel}
+                      {uploadedFilename && uploadStatus === "ready" ? (
+                        <>
+                          {" "}
+                          <span className="font-medium">{uploadedFilename}</span>
+                        </>
+                      ) : null}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Text-based PDF or DOCX up to 2 MB.
+                    </p>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor={locationId}>Location filter (optional)</Label>
-                  <Input
-                    id={locationId}
-                    value={location}
-                    onChange={(event) => setLocation(event.target.value)}
-                    placeholder="e.g. Remote"
-                    disabled={pending}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor={employmentId}>Employment type (optional)</Label>
-                  <Input
-                    id={employmentId}
-                    value={employmentType}
-                    onChange={(event) => setEmploymentType(event.target.value)}
-                    placeholder="e.g. full-time"
-                    disabled={pending}
-                  />
-                </div>
+                {uploadError ? (
+                  <p
+                    id={uploadErrorId}
+                    className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+                    role="alert"
+                  >
+                    {uploadError}
+                  </p>
+                ) : null}
+                {uploadStatus === "ready" && uploadedFilename ? (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={resumeSaveState === "saving" || resumeSaveState === "saved"}
+                      onClick={() => void saveUploadedResume()}
+                    >
+                      {resumeSaveState === "saving"
+                        ? "Saving…"
+                        : resumeSaveState === "saved"
+                          ? "Saved for later"
+                          : "Save for later"}
+                    </Button>
+                    {resumeSaveError ? (
+                      <p className="text-sm text-destructive" role="alert">
+                        {resumeSaveError}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
-              {selectedResume ? (
-                <p className="text-xs text-muted-foreground">
-                  Using resume &ldquo;{selectedResume.name}&rdquo; (
-                  {selectedResume.resume_text.length.toLocaleString()} characters).
-                </p>
-              ) : null}
-              <Button
-                type="button"
-                disabled={pending || !selectedResumeId}
-                aria-busy={pending}
-                className="bg-action text-action-foreground hover:bg-action/90"
-                onClick={() => void runDiscover()}
-              >
-                {pending ? "Ranking jobs…" : "Find matching jobs"}
-              </Button>
-            </>
+            </div>
           )}
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor={locationId}>Location (optional)</Label>
+              <Input
+                id={locationId}
+                value={location}
+                onChange={(event) => setLocation(event.target.value)}
+                placeholder="e.g. Remote"
+                disabled={pending}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor={employmentId}>Employment type (optional)</Label>
+              <Input
+                id={employmentId}
+                value={employmentType}
+                onChange={(event) => setEmploymentType(event.target.value)}
+                placeholder="e.g. full-time"
+                disabled={pending}
+              />
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            disabled={pending || !discoverReady}
+            aria-busy={pending}
+            className="bg-action text-action-foreground hover:bg-action/90"
+            onClick={() => void runDiscover()}
+          >
+            {pending ? "Finding matches…" : "Find My Matches"}
+          </Button>
+
           {error ? (
             <p
               className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive"
@@ -283,7 +578,7 @@ export function JobDiscovery() {
       {pending ? (
         <Card className="border-border/80 shadow-none">
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            Ranking available jobs with the semantic matcher…
+            Finding and ranking job matches…
           </CardContent>
         </Card>
       ) : null}

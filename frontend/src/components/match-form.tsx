@@ -43,6 +43,7 @@ import {
   loadMatchDraft,
   saveMatchDraft,
 } from "@/lib/match-draft";
+import { mapResumeUploadError } from "@/lib/resume-upload";
 import { saveTailorContext } from "@/lib/tailor-context";
 import {
   buildSaveMatchPayload,
@@ -220,10 +221,7 @@ export function MatchForm() {
       setResumeSaveName(parsed.filename.replace(/\.[^.]+$/, "") || parsed.filename);
       setError(null);
     } catch (err) {
-      const message =
-        err instanceof ApiError
-          ? err.message
-          : "Could not parse the uploaded resume. Try a text-based PDF or DOCX.";
+      const message = mapResumeUploadError(err);
       setUploadError(message);
     } finally {
       setUploadPending(false);
