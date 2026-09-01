@@ -16,7 +16,6 @@ const navItems = [
   { href: "/dashboard#resumes", label: "My Resumes" },
   { href: "/dashboard#history", label: "Match History" },
   { href: "/dashboard#saved-jobs", label: "Saved Jobs" },
-  { href: "/dashboard#profile", label: "Profile / Settings" },
 ];
 
 export function DashboardHeader() {

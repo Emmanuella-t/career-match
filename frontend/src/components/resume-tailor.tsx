@@ -89,6 +89,27 @@ export function ResumeTailor() {
   const [accepted, setAccepted] = useState<Record<string, boolean>>({});
   const [preview, setPreview] = useState<ResumeTailorApplyResponse | null>(null);
   const [exporting, setExporting] = useState<"docx" | "txt" | null>(null);
+  const [unsavedResumeText, setUnsavedResumeText] = useState<string | null>(null);
+
+  const hasResumeSource = Boolean(selectedResumeId || unsavedResumeText?.trim());
+
+  function buildTailorPayload() {
+    if (unsavedResumeText?.trim()) {
+      return { resume_text: unsavedResumeText, job_description: jobDescription, target };
+    }
+    return {
+      resume_id: selectedResumeId,
+      job_description: jobDescription,
+      target,
+    };
+  }
+
+  function buildApplyPayload(acceptedIds: string[]) {
+    return {
+      ...buildTailorPayload(),
+      accepted_suggestion_ids: acceptedIds,
+    };
+  }
 
   const loadResumes = useCallback(async () => {
     if (!isSignedIn) return;
@@ -105,10 +126,16 @@ export function ResumeTailor() {
 
       if (context?.resumeId) {
         setSelectedResumeId(context.resumeId);
+        setUnsavedResumeText(null);
+      } else if (context?.resumeText?.trim()) {
+        setUnsavedResumeText(context.resumeText);
+        setSelectedResumeId("");
       } else if (resumeParam) {
         setSelectedResumeId(resumeParam);
+        setUnsavedResumeText(null);
       } else if (rows.length > 0) {
         setSelectedResumeId(rows[0].id);
+        setUnsavedResumeText(null);
       }
 
       if (context?.jobDescription) {
@@ -137,7 +164,7 @@ export function ResumeTailor() {
   }, [isLoaded, isSignedIn, loadResumes]);
 
   async function runTailor() {
-    if (pending || !selectedResumeId || !jobDescription.trim()) return;
+    if (pending || !hasResumeSource || !jobDescription.trim()) return;
     setPending(true);
     setError(null);
     setResult(null);
@@ -145,19 +172,15 @@ export function ResumeTailor() {
     setAccepted({});
 
     saveTailorContext({
-      resumeId: selectedResumeId,
+      resumeId: selectedResumeId || undefined,
+      resumeText: unsavedResumeText ?? undefined,
       jobDescription,
     });
 
     try {
       const token = await getToken();
-      const response = await tailorResume(token, {
-        resume_id: selectedResumeId,
-        job_description: jobDescription,
-        target,
-      });
+      const response = await tailorResume(token, buildTailorPayload());
       setResult(response);
-      clearTailorContext();
       setStep("review");
     } catch (err) {
       const message =
@@ -191,12 +214,7 @@ export function ResumeTailor() {
     setError(null);
     try {
       const token = await getToken();
-      const response = await applyTailorRevision(token, {
-        resume_id: selectedResumeId,
-        job_description: jobDescription,
-        target,
-        accepted_suggestion_ids: acceptedIds(),
-      });
+      const response = await applyTailorRevision(token, buildApplyPayload(acceptedIds()));
       setPreview(response);
       setStep("preview");
     } catch (err) {
@@ -216,14 +234,15 @@ export function ResumeTailor() {
     setError(null);
     try {
       const token = await getToken();
-      const { blob, filename } = await exportTailoredResume(token, {
-        resume_id: selectedResumeId,
-        job_description: jobDescription,
-        target,
-        accepted_suggestion_ids: acceptedIds(),
-        format,
-      });
+      const { blob, filename } = await exportTailoredResume(
+        token,
+        {
+          ...buildApplyPayload(acceptedIds()),
+          format,
+        },
+      );
       downloadBlob(blob, filename);
+      clearTailorContext();
       setStep("export");
     } catch (err) {
       const message =
@@ -273,7 +292,7 @@ export function ResumeTailor() {
             <>
               {loadingResumes ? (
                 <p className="text-sm text-muted-foreground">Loading…</p>
-              ) : resumes.length === 0 ? (
+              ) : resumes.length === 0 && !unsavedResumeText ? (
                 <p className="text-sm text-muted-foreground">
                   No saved resumes yet.{" "}
                   <Link
@@ -282,17 +301,46 @@ export function ResumeTailor() {
                   >
                     Add a resume
                   </Link>
-                  .
+                  , or open tailoring from a match result with resume text.
                 </p>
               ) : (
                 <>
-                  <div className="grid gap-4 md:grid-cols-2">
+                  {unsavedResumeText ? (
+                    <div className="space-y-2 rounded-lg border border-border/80 bg-muted/20 p-4 text-sm">
+                      <p className="font-medium text-foreground">
+                        Using unsaved resume text from your match session
+                      </p>
+                      <p className="text-muted-foreground">
+                        This text is not stored until you save a resume on the
+                        dashboard. Your original saved resumes remain unchanged.
+                      </p>
+                      <p className="line-clamp-4 whitespace-pre-wrap text-xs text-foreground">
+                        {unsavedResumeText}
+                      </p>
+                      {resumes.length > 0 ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setUnsavedResumeText(null);
+                            setSelectedResumeId(resumes[0].id);
+                          }}
+                        >
+                          Switch to a saved resume
+                        </Button>
+                      ) : null}
+                    </div>
+                  ) : (
                     <div className="space-y-2">
                       <Label htmlFor={resumeSelectId}>Saved resume</Label>
                       <select
                         id={resumeSelectId}
                         value={selectedResumeId}
-                        onChange={(e) => setSelectedResumeId(e.target.value)}
+                        onChange={(e) => {
+                          setSelectedResumeId(e.target.value);
+                          setUnsavedResumeText(null);
+                        }}
                         disabled={pending}
                         className="h-9 w-full rounded-lg border border-input bg-card px-2.5 text-sm"
                       >
@@ -303,6 +351,9 @@ export function ResumeTailor() {
                         ))}
                       </select>
                     </div>
+                  )}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="hidden md:block" />
                     <div className="space-y-2">
                       <Label htmlFor={targetId}>Tailoring target</Label>
                       <select
@@ -335,9 +386,7 @@ export function ResumeTailor() {
                   </div>
                   <Button
                     type="button"
-                    disabled={
-                      pending || !selectedResumeId || !jobDescription.trim()
-                    }
+                    disabled={pending || !hasResumeSource || !jobDescription.trim()}
                     aria-busy={pending}
                     className="bg-action text-action-foreground hover:bg-action/90"
                     onClick={() => void runTailor()}
@@ -380,6 +429,8 @@ export function ResumeTailor() {
                   setResult(null);
                   setPreview(null);
                   setAccepted({});
+                  setUnsavedResumeText(null);
+                  clearTailorContext();
                 }}
               >
                 Start over

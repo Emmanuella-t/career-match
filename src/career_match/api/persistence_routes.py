@@ -8,11 +8,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from career_match.api.auth import ClerkIdentity, require_clerk_user
-from career_match.persistence.errors import (
-    PersistenceNotConfiguredError,
-    PersistenceUnavailableError,
-    RecordNotFoundError,
-)
+from career_match.api.errors import map_persistence_http_error
+from career_match.persistence.errors import PersistenceNotConfiguredError
 from career_match.persistence.schemas import (
     MatchAnalysisCreate,
     MatchAnalysisRecord,
@@ -42,13 +39,7 @@ def get_store(request: Request) -> PersistenceStore:
 
 
 def _map_persistence_error(exc: Exception) -> HTTPException:
-    if isinstance(exc, RecordNotFoundError):
-        return HTTPException(status_code=404, detail="not found")
-    if isinstance(exc, PersistenceNotConfiguredError):
-        return HTTPException(status_code=503, detail="persistence is not configured")
-    if isinstance(exc, PersistenceUnavailableError):
-        return HTTPException(status_code=503, detail="persistence service unavailable")
-    return HTTPException(status_code=503, detail="persistence service unavailable")
+    return map_persistence_http_error(exc)
 
 
 def _ensure_profile(store: PersistenceStore, identity: ClerkIdentity) -> UserProfile:

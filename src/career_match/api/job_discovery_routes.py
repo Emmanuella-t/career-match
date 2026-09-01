@@ -7,12 +7,17 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from career_match.api.auth import ClerkIdentity, require_clerk_user
+from career_match.api.errors import map_persistence_http_error, record_not_found_detail
 from career_match.api.job_discovery_service import JobDiscoveryService
 from career_match.api.persistence_routes import get_store
 from career_match.api.schemas import JobDiscoverRequest, JobDiscoverResponse
 from career_match.api.services import MatcherService
 from career_match.jobs.sources import PostgresJobOpportunitySource
-from career_match.persistence.errors import RecordNotFoundError
+from career_match.persistence.errors import (
+    PersistenceNotConfiguredError,
+    PersistenceUnavailableError,
+    RecordNotFoundError,
+)
 from career_match.persistence.store import PersistenceStore
 
 router = APIRouter(prefix="/api/v1", tags=["job-discovery"])
@@ -59,4 +64,9 @@ def discover_jobs(
     try:
         return service.discover(identity.user_id, payload)
     except RecordNotFoundError as exc:
-        raise HTTPException(status_code=404, detail="resume not found") from exc
+        raise HTTPException(
+            status_code=404,
+            detail=record_not_found_detail(exc),
+        ) from exc
+    except (PersistenceNotConfiguredError, PersistenceUnavailableError) as exc:
+        raise map_persistence_http_error(exc) from exc

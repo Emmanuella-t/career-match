@@ -1,18 +1,18 @@
 const steps = [
   {
     number: "01",
-    title: "Upload Your Resume",
-    body: "Career Match analyzes your skills, experience, education, and background.",
+    title: "Add your resume",
+    body: "Paste resume text on /match, or sign in to upload a PDF or DOCX file.",
   },
   {
     number: "02",
-    title: "Add a Job Description",
+    title: "Add a job description",
     body: "Provide the opportunity you want to evaluate.",
   },
   {
     number: "03",
-    title: "Understand Your Match",
-    body: "Receive an intelligent match score, strengths, missing skills, and actionable insights.",
+    title: "Understand your alignment",
+    body: "See a match score, supported skills, missing requirements, and explainable evidence.",
   },
 ];
 

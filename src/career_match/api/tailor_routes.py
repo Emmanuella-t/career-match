@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response
 
 from career_match.api.auth import ClerkIdentity, require_clerk_user
+from career_match.api.errors import map_persistence_http_error, record_not_found_detail
 from career_match.api.persistence_routes import get_store
 from career_match.api.schemas import (
     ResumeExportRequest,
@@ -19,7 +20,11 @@ from career_match.api.schemas import (
 from career_match.api.services import MatcherService
 from career_match.api.tailor_apply_service import TailorApplyError, TailorApplyService
 from career_match.api.tailor_service import TailorService
-from career_match.persistence.errors import RecordNotFoundError
+from career_match.persistence.errors import (
+    PersistenceNotConfiguredError,
+    PersistenceUnavailableError,
+    RecordNotFoundError,
+)
 from career_match.persistence.store import PersistenceStore
 from career_match.tailoring.export import (
     export_docx_bytes,
@@ -80,8 +85,12 @@ def tailor_resume(
     try:
         return service.tailor(identity.user_id, payload)
     except RecordNotFoundError as exc:
-        detail = "resume not found" if "resume" in str(exc).lower() else "job not found"
-        raise HTTPException(status_code=404, detail=detail) from exc
+        raise HTTPException(
+            status_code=404,
+            detail=record_not_found_detail(exc),
+        ) from exc
+    except (PersistenceNotConfiguredError, PersistenceUnavailableError) as exc:
+        raise map_persistence_http_error(exc) from exc
 
 
 @router.post(
@@ -99,8 +108,12 @@ def apply_tailor_suggestions(
     except TailorApplyError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RecordNotFoundError as exc:
-        detail = "resume not found" if "resume" in str(exc).lower() else "job not found"
-        raise HTTPException(status_code=404, detail=detail) from exc
+        raise HTTPException(
+            status_code=404,
+            detail=record_not_found_detail(exc),
+        ) from exc
+    except (PersistenceNotConfiguredError, PersistenceUnavailableError) as exc:
+        raise map_persistence_http_error(exc) from exc
 
 
 @router.post(
@@ -122,13 +135,11 @@ def export_tailored_resume(
         if payload.format == "txt":
             content = export_plain_text(structured).encode("utf-8")
             media_type = "text/plain; charset=utf-8"
-        elif payload.format == "docx":
+        else:
             content = export_docx_bytes(structured)
             media_type = (
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
-        else:
-            raise HTTPException(status_code=400, detail="unsupported export format")
         return Response(
             content=content,
             media_type=media_type,
@@ -137,5 +148,9 @@ def export_tailored_resume(
     except TailorApplyError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RecordNotFoundError as exc:
-        detail = "resume not found" if "resume" in str(exc).lower() else "job not found"
-        raise HTTPException(status_code=404, detail=detail) from exc
+        raise HTTPException(
+            status_code=404,
+            detail=record_not_found_detail(exc),
+        ) from exc
+    except (PersistenceNotConfiguredError, PersistenceUnavailableError) as exc:
+        raise map_persistence_http_error(exc) from exc

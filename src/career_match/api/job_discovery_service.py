@@ -18,6 +18,7 @@ from career_match.persistence.store import PersistenceStore
 
 DEFAULT_DISCOVERY_LIMIT = 20
 MAX_DISCOVERY_LIMIT = 50
+MAX_CATALOG_SCAN = 500
 
 
 class JobDiscoveryService:
@@ -41,7 +42,7 @@ class JobDiscoveryService:
         opportunities = self._job_source.list_opportunities(
             location=payload.location,
             employment_type=payload.employment_type,
-            limit=None,
+            limit=MAX_CATALOG_SCAN,
         )
 
         ranked: list[RankedJobResult] = []

@@ -19,8 +19,8 @@ export function LandingFinalCta() {
             Your next opportunity should be a better match.
           </h2>
           <p className="font-body text-base leading-relaxed text-primary-foreground/85 sm:text-lg">
-            Upload your resume and discover how well your experience aligns with
-            the roles you want.
+            Paste or upload your resume and see how well your experience aligns
+            with the roles you want. No account required to try matching.
           </p>
         </div>
         <Link

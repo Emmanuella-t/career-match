@@ -1,5 +1,6 @@
 export type TailorContext = {
   resumeId?: string;
+  resumeText?: string;
   jobDescription: string;
   jobTitle?: string;
 };
@@ -28,6 +29,7 @@ export function loadTailorContext(): TailorContext | null {
     }
     return {
       resumeId: parsed.resumeId,
+      resumeText: parsed.resumeText,
       jobDescription: parsed.jobDescription,
       jobTitle: parsed.jobTitle,
     };

@@ -93,6 +93,15 @@ cd career-match
 python -m pip install -e ".[dev]"
 pytest
 ruff check .
+```
+
+On **Windows with Python 3.14**, `tests/test_semantic_minilm.py` may crash or
+fail when loading the real MiniLM encoder (torch access violation or paging-file
+errors). That is a **pre-existing local environment limitation**, not a product
+regression. Other tests use fixed encoders. To skip the MiniLM integration test
+locally: `pytest --ignore=tests/test_semantic_minilm.py`.
+
+```bash
 python -c "import career_match; print('Career Match import successful')"
 python scripts/audit_legacy_dataset.py
 python scripts/run_baseline_match.py --sample
@@ -273,7 +282,7 @@ Run both services:
 
 ```bash
 python -m pip install -e ".[dev]"
-# Optional for persistence: set DATABASE_URL and CLERK_ISSUER (see .env.example)
+# Persistence: set DATABASE_URL and CLERK_ISSUER (see .env.example)
 uvicorn career_match.api.app:app --reload --host 127.0.0.1 --port 8000
 ```
 
@@ -286,11 +295,23 @@ npm ci
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Use **Try Career Match**
-for guest mode, or **Log In** / **Sign Up** for the dashboard. Apply the
-SQL in `migrations/0001_initial_persistence.sql` before expecting dashboard saves to succeed.
-The match UI calls FastAPI `POST /api/v1/match` (`NEXT_PUBLIC_API_URL`,
-default `http://localhost:8000`). API docs: `http://127.0.0.1:8000/docs`.
+Open **http://localhost:3000** (not `127.0.0.1`). The frontend dev server
+binds to `localhost` so Clerk development sessions work without self-proxy
+or socket hang-up errors. The API defaults to `http://localhost:8000`
+(`NEXT_PUBLIC_API_URL`); CORS allows both `localhost:3000` and
+`127.0.0.1:3000`.
+
+**Before dashboard saves work:** apply SQL migrations in order:
+
+1. `migrations/0001_initial_persistence.sql`
+2. `migrations/0002_job_opportunities.sql`
+
+See `migrations/README.md` for Neon setup. Job discovery shows an honest
+empty state until a real provider syncs jobs into `job_opportunities`.
+
+Use **Try Career Match** on `/match` for guest mode (2 free analyses), or
+**Log In** / **Sign Up** for the dashboard. API docs:
+`http://127.0.0.1:8000/docs`.
 
 ## Setup (frontend)
 
