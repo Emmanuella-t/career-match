@@ -6,15 +6,35 @@ import { useEffect, useId, useRef } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+type AuthGateReason = "guest_limit" | "upload_required";
+
 type AuthGateModalProps = {
   open: boolean;
+  reason?: AuthGateReason;
   onClose: () => void;
   loginHref: string;
   signupHref: string;
 };
 
+const AUTH_GATE_COPY: Record<
+  AuthGateReason,
+  { title: string; description: string }
+> = {
+  guest_limit: {
+    title: "Keep matching with Career Match",
+    description:
+      "You've completed your free guest analyses. Create a free account or log in to continue and keep your match history in one place.",
+  },
+  upload_required: {
+    title: "Sign in to upload a resume file",
+    description:
+      "PDF and DOCX parsing is available for signed-in users. Create a free account or log in to upload a file, or continue by pasting resume text as a guest.",
+  },
+};
+
 export function AuthGateModal({
   open,
+  reason = "guest_limit",
   onClose,
   loginHref,
   signupHref,
@@ -46,6 +66,8 @@ export function AuthGateModal({
 
   if (!open) return null;
 
+  const copy = AUTH_GATE_COPY[reason];
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -70,19 +92,20 @@ export function AuthGateModal({
           id={titleId}
           className="font-headline text-2xl font-semibold tracking-tight text-primary sm:text-3xl"
         >
-          Keep matching with Career Match
+          {copy.title}
         </h2>
         <p
           id={descriptionId}
           className="mt-3 font-body text-base leading-relaxed text-muted-foreground"
         >
-          You&apos;ve completed your free guest analyses. Create a free account
-          or log in to continue and keep your match history in one place.
+          {copy.description}
         </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Your current resume and job description stay on this device so you can
-          continue after signing in.
-        </p>
+        {reason === "guest_limit" ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your current resume and job description stay on this device so you can
+            continue after signing in.
+          </p>
+        ) : null}
 
         <div className="mt-6 flex flex-col gap-3">
           <Link

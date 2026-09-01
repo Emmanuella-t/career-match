@@ -2,6 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -36,6 +37,7 @@ import {
   type SavedJobRecord,
   updateResume,
 } from "@/lib/persistence-api";
+import { saveTailorContext } from "@/lib/tailor-context";
 import { cn } from "@/lib/utils";
 
 function EmptyState({ message }: { message: string }) {
@@ -61,6 +63,7 @@ function formatDate(iso: string): string {
 }
 
 export function DashboardHome() {
+  const router = useRouter();
   const { getToken, isLoaded, isSignedIn } = useAuth();
   const resumeNameId = useId();
   const resumeTextId = useId();
@@ -627,6 +630,20 @@ export function DashboardHome() {
                     >
                       Use in Match
                     </Link>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        saveTailorContext({
+                          jobDescription: job.job_description,
+                          jobTitle: job.title,
+                        });
+                        router.push(`/dashboard/tailor?jobId=${job.id}`);
+                      }}
+                    >
+                      Tailor resume
+                    </Button>
                     <Button
                       type="button"
                       size="sm"

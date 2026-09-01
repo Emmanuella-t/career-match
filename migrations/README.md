@@ -35,3 +35,18 @@ Neon may scale compute to zero when idle. The API uses SQLAlchemy
 `pool_pre_ping=True` so stale connections are detected after a cold start.
 
 Never expose `DATABASE_URL` to the Next.js client.
+
+## Optional Clerk JWKS override
+
+If your Clerk instance requires a custom JWKS URL:
+
+```bash
+CLERK_JWKS_URL=https://your-instance.clerk.accounts.dev/.well-known/jwks.json
+```
+
+## Deploy order
+
+1. Run migrations (`0001`, then `0002`)
+2. Set `DATABASE_URL` and `CLERK_ISSUER` on the API host
+3. Deploy the FastAPI service
+4. Deploy the Next.js frontend with Clerk keys and `NEXT_PUBLIC_API_URL`

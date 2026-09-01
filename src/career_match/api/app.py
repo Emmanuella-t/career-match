@@ -95,7 +95,7 @@ def create_app() -> FastAPI:
         _request: Request,
         exc: CareerMatchError,
     ) -> JSONResponse:
-        return JSONResponse(status_code=500, content={"detail": str(exc)})
+        return JSONResponse(status_code=500, content={"detail": "internal error"})
 
     @application.get(
         "/health",

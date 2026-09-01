@@ -107,6 +107,10 @@ export function MatchForm() {
   const [result, setResult] = useState<MatchResponse | null>(null);
   const [pending, setPending] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
+  const [authGateReason, setAuthGateReason] = useState<
+    "guest_limit" | "upload_required"
+  >("guest_limit");
+  const [hydratingSaved, setHydratingSaved] = useState(false);
   const [guestCount, setGuestCount] = useState(0);
   const [savePending, setSavePending] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -149,6 +153,7 @@ export function MatchForm() {
     let cancelled = false;
 
     async function loadSaved() {
+      setHydratingSaved(true);
       try {
         const token = await getToken();
         if (!token || cancelled) return;
@@ -173,6 +178,10 @@ export function MatchForm() {
             ? err.message
             : "Could not load the saved resume or job.";
         setError(message);
+      } finally {
+        if (!cancelled) {
+          setHydratingSaved(false);
+        }
       }
     }
 
@@ -194,6 +203,7 @@ export function MatchForm() {
     setResumeSaveError(null);
 
     if (!authenticated) {
+      setAuthGateReason("upload_required");
       setAuthGateOpen(true);
       return;
     }
@@ -266,6 +276,7 @@ export function MatchForm() {
     saveMatchDraft(draft);
 
     if (shouldGateGuestAnalysis(authenticated)) {
+      setAuthGateReason("guest_limit");
       setAuthGateOpen(true);
       return;
     }
@@ -379,6 +390,11 @@ export function MatchForm() {
                 void runAnalyze();
               }}
             >
+              {hydratingSaved ? (
+                <p className="text-sm text-muted-foreground" role="status">
+                  Loading saved resume or job…
+                </p>
+              ) : null}
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor={resumeId}>Resume text</Label>
@@ -615,6 +631,7 @@ export function MatchForm() {
                     onClick={() => {
                       saveTailorContext({
                         resumeId: selectedResumeId ?? undefined,
+                        resumeText: selectedResumeId ? undefined : resume,
                         jobDescription: job,
                         jobTitle: jobTitle || undefined,
                       });
@@ -653,6 +670,7 @@ export function MatchForm() {
 
       <AuthGateModal
         open={authGateOpen}
+        reason={authGateReason}
         onClose={closeAuthGate}
         loginHref={`/login?redirect_url=${returnPath}`}
         signupHref={`/signup?redirect_url=${returnPath}`}

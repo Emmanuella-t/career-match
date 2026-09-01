@@ -289,6 +289,16 @@ class ResumeTailorApplyRequest(BaseModel):
     target: TailorTarget = "all"
     matcher: MatcherName = Field(default=DEFAULT_MATCHER)  # type: ignore[assignment]
 
+    @field_validator("accepted_suggestion_ids")
+    @classmethod
+    def _bounded_accepted_ids(cls, value: list[str]) -> list[str]:
+        if len(value) > 50:
+            raise ValueError("at most 50 accepted suggestion ids are allowed")
+        for suggestion_id in value:
+            if not suggestion_id or len(suggestion_id) > 64:
+                raise ValueError("invalid suggestion id")
+        return value
+
     @field_validator("resume_text", "job_description")
     @classmethod
     def _bounded_optional_text_apply(cls, value: str | None) -> str | None:

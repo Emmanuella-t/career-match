@@ -134,7 +134,7 @@ export type JobDiscoverResponse = {
 
 function requireToken(token: string | null | undefined): string {
   if (!token) {
-    throw new Error("authentication required");
+    throw new ApiError("Sign in to use saved resumes and dashboard features.", 401);
   }
   return token;
 }
@@ -401,14 +401,22 @@ export async function exportTailoredResume(
   payload: ResumeExportPayload,
 ): Promise<{ blob: Blob; filename: string }> {
   const authToken = requireToken(token);
-  const response = await fetch(`${getApiBaseUrl()}/api/v1/resumes/export`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${authToken}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${getApiBaseUrl()}/api/v1/resumes/export`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    throw new ApiError(
+      "Career Match couldn't reach the export service. Make sure the backend is running and try again.",
+      null,
+    );
+  }
 
   if (!response.ok) {
     let parsed: unknown = null;

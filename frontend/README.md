@@ -1,24 +1,41 @@
 # Career Match frontend
 
-`frontend/` is an early Career Match product prototype built fresh in this
-repository. It is the product layer. It does not train or serve a matching
-model, and it is not a preserved copy of an earlier UI.
+Next.js App Router UI for Career Match. The frontend calls the FastAPI
+matching and persistence APIs; it does not train or serve ML models.
 
-## Scripts
+## Local development
 
 ```bash
 npm ci
-npm run lint
-npm run build
 npm run dev
 ```
 
-Dev server: `http://127.0.0.1:43173`
+Open **http://localhost:3000** (the dev server binds to `localhost`, not
+`127.0.0.1`, so Clerk development sessions work without proxy errors).
 
-## What is implemented
+Configure `frontend/.env.local` from `.env.example` (Clerk keys and
+`NEXT_PUBLIC_API_URL`, default `http://localhost:8000`).
 
-- Overview of the ML-first project
-- Skill-overlap prototype (same small lexicon as the Python package)
-- Architecture notes that match `docs/architecture.md`
+## Scripts
 
-The compare screen never reports a production match score.
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Dev server on `localhost:3000` |
+| `npm run build` | Production build |
+| `npm run start` | Production server on `localhost:3000` |
+| `npm test` | Vitest unit tests |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript check |
+
+## Product routes
+
+| Route | Access |
+| --- | --- |
+| `/` | Landing |
+| `/match` | Guest or signed-in resume–job analysis |
+| `/login`, `/signup` | Clerk auth |
+| `/dashboard` | Saved resumes, jobs, match history |
+| `/dashboard/jobs` | Job discovery and ranking |
+| `/dashboard/tailor` | Grounded tailoring, preview, export |
+
+See root `README.md` for full local startup (backend + Neon migrations).
