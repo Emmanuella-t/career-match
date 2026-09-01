@@ -242,8 +242,13 @@ def test_discover_does_not_accept_client_user_id(client: TestClient) -> None:
     assert response.json()["resume_id"] == resume_id
 
 
-def test_production_job_source_reads_empty_catalog(store: InMemoryPersistenceStore) -> None:
+def test_production_job_source_reads_empty_catalog(
+    store: InMemoryPersistenceStore,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Postgres catalog path returns no jobs when the table/catalog is empty."""
+    monkeypatch.delenv("ADZUNA_APP_ID", raising=False)
+    monkeypatch.delenv("ADZUNA_APP_KEY", raising=False)
     semantic = SemanticMatcher(encoder=_FixedEncoder())
     service = MatcherService(semantic=semantic)
 

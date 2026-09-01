@@ -34,6 +34,23 @@ def _auth_headers() -> dict[str, str]:
     return {"Authorization": "Bearer test-token"}
 
 
+def test_list_resumes_returns_user_friendly_error_without_database(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    from career_match.persistence.database import reset_database_cache
+
+    reset_database_cache()
+    application = create_app()
+    application.state.clerk_identity_override = USER_A
+    with TestClient(application) as client:
+        response = client.get("/api/v1/resumes", headers=_auth_headers())
+    assert response.status_code == 503
+    assert response.json()["detail"] == (
+        "We're having trouble loading your saved data right now. Please try again."
+    )
+
+
 def test_persistence_not_configured_without_database_url(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -274,7 +291,9 @@ def test_persistence_unavailable_maps_to_503(
     with TestClient(application) as client:
         response = client.get("/api/v1/resumes", headers=_auth_headers())
     assert response.status_code == 503
-    assert response.json()["detail"] == "persistence service unavailable"
+    assert response.json()["detail"] == (
+        "We're having trouble loading your saved data right now. Please try again."
+    )
     assert "Traceback" not in response.text
 
 

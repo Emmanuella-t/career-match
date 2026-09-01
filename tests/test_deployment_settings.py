@@ -60,9 +60,12 @@ def test_get_cors_reads_environment(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_local_default_cors_origins(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("CAREER_MATCH_CORS_ORIGINS", raising=False)
-    assert "http://localhost:3000" in get_cors_allow_origins()
-    assert "http://127.0.0.1:3000" in get_cors_allow_origins()
-    assert not any("43173" in origin for origin in get_cors_allow_origins())
+    origins = get_cors_allow_origins()
+    assert "http://localhost:3000" in origins
+    assert "http://127.0.0.1:3000" in origins
+    assert "http://localhost:3001" in origins
+    assert "http://127.0.0.1:3001" in origins
+    assert not any("43173" in origin for origin in origins)
 
 
 def test_get_port_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -148,6 +151,24 @@ def test_cors_denies_unknown_origin(monkeypatch: pytest.MonkeyPatch) -> None:
         assert response.headers.get("access-control-allow-origin") != (
             "https://evil.example.com"
         )
+
+
+def test_local_cors_allows_port_3001(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("CAREER_MATCH_CORS_ORIGINS", raising=False)
+    application = create_app()
+    with TestClient(application) as client:
+        client.app.state.matcher_service = MatcherService()
+        response = client.options(
+            "/api/v1/resumes/parse",
+            headers={
+                "Origin": "http://localhost:3001",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == (
+        "http://localhost:3001"
+    )
 
 
 def test_local_cors_still_works(monkeypatch: pytest.MonkeyPatch) -> None:

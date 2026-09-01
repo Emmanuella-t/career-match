@@ -186,6 +186,7 @@ class JobDiscoverResponse(BaseModel):
     resume_id: UUID | None = None
     source: str
     search_query: str | None = None
+    search_queries: list[str] | None = None
     candidate_count: int = 0
     provider_message: str | None = None
 

@@ -38,6 +38,32 @@ def test_parse_resume_requires_authentication() -> None:
     assert response.json()["detail"] == "authentication required"
 
 
+def test_parse_works_without_database_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Parsing must not depend on Neon persistence being configured."""
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    from career_match.persistence.database import reset_database_cache
+
+    reset_database_cache()
+    application = create_app()
+    application.state.clerk_identity_override = USER_A
+    with TestClient(application) as test_client:
+        response = test_client.post(
+            "/api/v1/resumes/parse",
+            headers=_auth_headers(),
+            files={
+                "file": (
+                    "resume.pdf",
+                    make_text_pdf("Python engineer with Docker."),
+                    "application/pdf",
+                )
+            },
+        )
+    assert response.status_code == 200
+    assert "Python engineer" in response.json()["extracted_text"]
+
+
 def test_parse_valid_pdf(client: TestClient) -> None:
     response = client.post(
         "/api/v1/resumes/parse",

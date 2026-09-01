@@ -229,4 +229,6 @@ def test_persistence_routes_return_503_when_not_configured(
     with TestClient(application) as test_client:
         response = test_client.get("/api/v1/resumes", headers=_auth_headers())
     assert response.status_code == 503
-    assert response.json()["detail"] == "persistence is not configured"
+    assert response.json()["detail"] == (
+        "We're having trouble loading your saved data right now. Please try again."
+    )

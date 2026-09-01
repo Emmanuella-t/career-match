@@ -39,11 +39,12 @@ export class MatchApiError extends ApiError {
   }
 }
 
-const DEFAULT_API_URL = "http://localhost:8000";
+const DEFAULT_API_URL = "http://127.0.0.1:8000";
 
 /** API origin for the browser. Prefer NEXT_PUBLIC_API_URL at build time. */
 export function getApiBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_URL).replace(/\/$/, "");
+  const configured = process.env.NEXT_PUBLIC_API_URL?.trim();
+  return (configured || DEFAULT_API_URL).replace(/\/$/, "");
 }
 
 export function detailFromBody(body: unknown): string | null {
@@ -81,7 +82,7 @@ function messageForStatus(status: number, detail: string | null): string {
   if (status === 503) {
     return (
       detail ??
-      "Saved data is temporarily unavailable. You can keep matching; try saving again shortly."
+      "We're having trouble loading your saved data right now. Please try again."
     );
   }
   if (status >= 500) {
@@ -132,7 +133,7 @@ export async function apiFetch<T>(
   } catch {
     const ErrorCtor = errorName === "MatchApiError" ? MatchApiError : ApiError;
     throw new ErrorCtor(
-      "Career Match couldn't reach the analysis service. Make sure the backend is running and try again.",
+      "We're having trouble connecting right now. Please try again.",
       null,
     );
   }

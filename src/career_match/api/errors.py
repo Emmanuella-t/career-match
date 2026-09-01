@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import HTTPException
 
+from career_match.api.user_messages import PERSISTENCE_UNAVAILABLE
 from career_match.persistence.errors import (
     PersistenceNotConfiguredError,
     PersistenceUnavailableError,
@@ -27,8 +28,6 @@ def map_persistence_http_error(exc: Exception) -> HTTPException:
     """Translate persistence-layer errors into HTTP responses."""
     if isinstance(exc, RecordNotFoundError):
         return HTTPException(status_code=404, detail=record_not_found_detail(exc))
-    if isinstance(exc, PersistenceNotConfiguredError):
-        return HTTPException(status_code=503, detail="persistence is not configured")
-    if isinstance(exc, PersistenceUnavailableError):
-        return HTTPException(status_code=503, detail="persistence service unavailable")
-    return HTTPException(status_code=503, detail="persistence service unavailable")
+    if isinstance(exc, (PersistenceNotConfiguredError, PersistenceUnavailableError)):
+        return HTTPException(status_code=503, detail=PERSISTENCE_UNAVAILABLE)
+    return HTTPException(status_code=503, detail=PERSISTENCE_UNAVAILABLE)

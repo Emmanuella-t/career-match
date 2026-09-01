@@ -15,7 +15,7 @@ from career_match.api.settings import SCORE_DISCLAIMER
 from career_match.jobs.errors import JobProviderError
 from career_match.jobs.factory import adzuna_is_configured
 from career_match.jobs.protocol import JobOpportunity, JobSource
-from career_match.jobs.query_builder import build_job_search_query
+from career_match.jobs.query_builder import JobSearchQuery, build_job_search_queries
 from career_match.persistence.errors import RecordNotFoundError
 from career_match.persistence.store import PersistenceStore
 
@@ -23,6 +23,7 @@ DEFAULT_DISCOVERY_LIMIT = 20
 MAX_DISCOVERY_LIMIT = 50
 MAX_CATALOG_SCAN = 500
 MAX_ADZUNA_FETCH = 50
+MIN_PER_QUERY_FETCH = 5
 
 _PROVIDER_UNAVAILABLE = (
     "We're having trouble loading jobs right now. Please try again in a moment."
@@ -54,7 +55,7 @@ class JobDiscoveryService:
     def discover(self, clerk_user_id: str, payload: JobDiscoverRequest) -> JobDiscoverResponse:
         resume_text, resume_id = self._resolve_resume(clerk_user_id, payload)
         limit = min(payload.limit or DEFAULT_DISCOVERY_LIMIT, MAX_DISCOVERY_LIMIT)
-        search = build_job_search_query(resume_text)
+        search_plan = build_job_search_queries(resume_text)
 
         provider_message: str | None = None
         fetch_limit = (
@@ -64,12 +65,7 @@ class JobDiscoveryService:
         )
 
         try:
-            opportunities = self._job_source.list_opportunities(
-                search_query=search.text,
-                location=payload.location,
-                employment_type=payload.employment_type,
-                limit=fetch_limit,
-            )
+            opportunities = self._retrieve_candidates(search_plan.queries, payload, fetch_limit)
         except JobProviderError:
             opportunities = []
             provider_message = _PROVIDER_UNAVAILABLE
@@ -109,6 +105,7 @@ class JobDiscoveryService:
         ranked.sort(key=lambda item: item.overall_score, reverse=True)
         ranked = ranked[:limit]
 
+        query_texts = [query.text for query in search_plan.queries]
         return JobDiscoverResponse(
             results=ranked,
             matcher=matcher_name,
@@ -116,10 +113,54 @@ class JobDiscoveryService:
             disclaimer=SCORE_DISCLAIMER,
             resume_id=resume_id,
             source=self._job_source.name,
-            search_query=search.text,
+            search_query=search_plan.primary.text,
+            search_queries=query_texts or None,
             candidate_count=candidate_count,
             provider_message=provider_message,
         )
+
+    def _retrieve_candidates(
+        self,
+        queries: tuple[JobSearchQuery, ...],
+        payload: JobDiscoverRequest,
+        fetch_limit: int,
+    ) -> list[JobOpportunity]:
+        if not queries:
+            return []
+
+        per_query_limit = max(
+            MIN_PER_QUERY_FETCH,
+            fetch_limit // max(len(queries), 1),
+        )
+        combined: list[JobOpportunity] = []
+        seen_keys: set[str] = set()
+
+        for query in queries:
+            batch = self._fetch_query_with_fallback(query, payload, per_query_limit)
+            for opportunity in batch:
+                key = _opportunity_dedupe_key(opportunity)
+                if key in seen_keys:
+                    continue
+                seen_keys.add(key)
+                combined.append(opportunity)
+        return combined
+
+    def _fetch_query_with_fallback(
+        self,
+        query: JobSearchQuery,
+        payload: JobDiscoverRequest,
+        limit: int,
+    ) -> list[JobOpportunity]:
+        for search_text in _query_attempts(query):
+            results = self._job_source.list_opportunities(
+                search_query=search_text,
+                location=payload.location,
+                employment_type=payload.employment_type,
+                limit=limit,
+            )
+            if results:
+                return results
+        return []
 
     def _resolve_resume(
         self,
@@ -147,6 +188,18 @@ class JobDiscoveryService:
         """Return whether the Postgres catalog contains any discoverable jobs."""
         jobs = self._job_source.list_opportunities(limit=1)
         return bool(jobs)
+
+
+def _query_attempts(query: JobSearchQuery) -> tuple[str, ...]:
+    if query.broaden_text and query.broaden_text != query.text:
+        return (query.text, query.broaden_text)
+    return (query.text,)
+
+
+def _opportunity_dedupe_key(opportunity: JobOpportunity) -> str:
+    if opportunity.source_url:
+        return opportunity.source_url.strip().lower()
+    return str(opportunity.id)
 
 
 def _to_job_response(opportunity: JobOpportunity) -> JobOpportunityResponse:
