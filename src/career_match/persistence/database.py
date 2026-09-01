@@ -22,6 +22,19 @@ def get_database_url() -> str | None:
     return raw or None
 
 
+def normalize_database_url(url: str) -> str:
+    """Ensure SQLAlchemy uses the psycopg 3 driver for standard Postgres URLs.
+
+    Neon and most providers issue ``postgresql://`` URLs. SQLAlchemy defaults
+    that scheme to the legacy psycopg2 dialect unless the driver is explicit.
+    """
+    if url.startswith("postgresql+psycopg://"):
+        return url
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url[len("postgresql://") :]
+    return url
+
+
 def database_configured() -> bool:
     return get_database_url() is not None
 
@@ -32,7 +45,7 @@ def get_engine() -> Engine:
     if not url:
         raise PersistenceNotConfiguredError("DATABASE_URL is required for persistence")
     return create_engine(
-        url,
+        normalize_database_url(url),
         pool_pre_ping=True,
         pool_size=DEFAULT_POOL_SIZE,
         max_overflow=DEFAULT_MAX_OVERFLOW,

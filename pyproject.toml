@@ -36,6 +36,7 @@ api = [
     "python-multipart>=0.0.9,<1",
     "pypdf>=5.0,<7",
     "python-docx>=1.1,<2",
+    "python-dotenv>=1.0,<2",
 ]
 dev = [
     "pytest>=8.0",
@@ -50,6 +51,7 @@ dev = [
     "python-multipart>=0.0.9,<1",
     "pypdf>=5.0,<7",
     "python-docx>=1.1,<2",
+    "python-dotenv>=1.0,<2",
 ]
 
 [project.urls]

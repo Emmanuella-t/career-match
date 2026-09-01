@@ -34,6 +34,7 @@ from career_match.api.settings import (
     API_VERSION,
     apply_model_cache_env,
     get_cors_allow_origins,
+    log_startup_config,
 )
 from career_match.api.tailor_routes import router as tailor_router
 from career_match.core.exceptions import CareerMatchError
@@ -43,6 +44,7 @@ from career_match.core.exceptions import CareerMatchError
 async def lifespan(app: FastAPI):
     """Attach a process-wide MatcherService without loading MiniLM yet."""
     apply_model_cache_env()
+    log_startup_config()
     app.state.matcher_service = MatcherService()
     yield
 

@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from career_match.api.auth import ClerkIdentity, require_clerk_user
 from career_match.api.errors import map_persistence_http_error
+from career_match.api.user_messages import PERSISTENCE_UNAVAILABLE
 from career_match.persistence.errors import PersistenceNotConfiguredError
 from career_match.persistence.schemas import (
     MatchAnalysisCreate,
@@ -34,7 +35,7 @@ def get_store(request: Request) -> PersistenceStore:
     except PersistenceNotConfiguredError as exc:
         raise HTTPException(
             status_code=503,
-            detail="persistence is not configured",
+            detail=PERSISTENCE_UNAVAILABLE,
         ) from exc
 
 

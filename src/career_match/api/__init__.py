@@ -5,6 +5,7 @@ matchers load their encoder lazily on first scoring request through the
 shared ``MatcherService``.
 """
 
+from career_match.api import settings as _settings  # noqa: F401
 from career_match.api.app import app, create_app
 
 __all__ = ["app", "create_app"]

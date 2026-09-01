@@ -15,6 +15,8 @@ from typing import Annotated, Any
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from career_match.api.user_messages import AUTH_UNAVAILABLE
+
 _bearer = HTTPBearer(auto_error=False)
 
 
@@ -32,8 +34,10 @@ class ClerkAuthError(Exception):
 
 
 def get_clerk_issuer() -> str | None:
-    raw = os.environ.get("CLERK_ISSUER", "").strip().rstrip("/")
-    return raw or None
+    raw = os.environ.get("CLERK_ISSUER", "").strip()
+    if not raw:
+        raw = os.environ.get("CLERK_ISSUER_URL", "").strip()
+    return raw.rstrip("/") or None
 
 
 def get_clerk_jwks_url() -> str | None:
@@ -130,6 +134,6 @@ async def require_clerk_user(
         if "not configured" in detail.lower() or "not installed" in detail.lower():
             raise HTTPException(
                 status_code=503,
-                detail="authentication is not configured",
+                detail=AUTH_UNAVAILABLE,
             ) from exc
         raise HTTPException(status_code=401, detail="invalid or expired token") from exc

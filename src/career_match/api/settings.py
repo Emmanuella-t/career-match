@@ -2,14 +2,16 @@
 
 Environment variables (optional):
 
+- Root ``.env`` at the repository root is loaded automatically on API import
+  (``override=False`` so real deployment env vars win).
 - ``CAREER_MATCH_CORS_ORIGINS`` — comma-separated browser origins allowed
   by CORS. Defaults to local Next.js origins when unset.
 - ``PORT`` — listen port for production startup scripts (default 8000).
 - ``HOST`` — bind address for production startup (default ``0.0.0.0``).
 - ``CAREER_MATCH_MODEL_CACHE_DIR`` — directory for Hugging Face /
   sentence-transformers model cache when the host needs an explicit path.
-- ``CLERK_ISSUER`` / ``CLERK_JWKS_URL`` — Clerk JWT verification for
-  persistence routes.
+- ``CLERK_ISSUER`` (canonical) / ``CLERK_ISSUER_URL`` (legacy alias) /
+  ``CLERK_JWKS_URL`` — Clerk JWT verification for authenticated routes.
 - ``DATABASE_URL`` — PostgreSQL connection string (Neon in production;
   backend only — never expose to the browser).
 - ``ADZUNA_APP_ID`` / ``ADZUNA_APP_KEY`` / ``ADZUNA_COUNTRY`` — Adzuna job
@@ -17,12 +19,20 @@ Environment variables (optional):
 - Resume uploads are parsed in memory with a ``2 MiB`` file size cap
   (``MAX_RESUME_FILE_BYTES``). Supported formats: PDF and DOCX.
 
-Importing this module does not download MiniLM.
+Importing this module loads the root ``.env`` when present. It does not
+download MiniLM.
 """
 
 from __future__ import annotations
 
+import logging
 import os
+from pathlib import Path
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+_PROJECT_ROOT: Path | None = None
 
 # Hard cap on resume_text / job_description length (characters after strip).
 # Large enough for typical multi-page resumes and long JDs; small enough to
@@ -37,6 +47,8 @@ MAX_RESUME_FILE_BYTES = 2 * 1024 * 1024
 DEFAULT_CORS_ORIGINS: tuple[str, ...] = (
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
 )
 
 DEFAULT_MATCHER = "semantic"
@@ -117,3 +129,65 @@ def apply_model_cache_env() -> None:
     os.environ.setdefault("TRANSFORMERS_CACHE", cache)
     os.environ.setdefault("SENTENCE_TRANSFORMERS_HOME", cache)
     os.environ.setdefault("HUGGINGFACE_HUB_CACHE", os.path.join(cache, "hub"))
+
+
+def find_project_root() -> Path:
+    """Return the repository root (directory containing ``pyproject.toml``)."""
+    global _PROJECT_ROOT
+    if _PROJECT_ROOT is not None:
+        return _PROJECT_ROOT
+    for parent in Path(__file__).resolve().parents:
+        if (parent / "pyproject.toml").is_file():
+            _PROJECT_ROOT = parent
+            return parent
+    _PROJECT_ROOT = Path(__file__).resolve().parents[3]
+    return _PROJECT_ROOT
+
+
+def load_local_env_file() -> bool:
+    """Load repository-root ``.env`` for local development.
+
+    Uses ``override=False`` so process / platform environment variables always
+    win. Missing ``.env`` is normal in production and is not an error.
+    """
+    try:
+        from dotenv import load_dotenv
+    except ImportError:  # pragma: no cover - optional until api extra installed
+        return False
+
+    env_path = find_project_root() / ".env"
+    if not env_path.is_file():
+        return False
+    return load_dotenv(env_path, override=False)
+
+
+def get_runtime_config_status() -> dict[str, Any]:
+    """Non-secret configuration snapshot for startup diagnostics."""
+    from career_match.api.auth import get_clerk_issuer
+    from career_match.jobs.factory import adzuna_is_configured
+    from career_match.persistence.database import database_configured
+
+    return {
+        "database_configured": database_configured(),
+        "clerk_issuer_configured": get_clerk_issuer() is not None,
+        "adzuna_configured": adzuna_is_configured(),
+        "cors_origins": get_cors_allow_origins(),
+    }
+
+
+def log_startup_config() -> None:
+    """Log safe local configuration flags (never secrets)."""
+    flag = os.environ.get("CAREER_MATCH_LOG_STARTUP_CONFIG", "1").strip().lower()
+    if flag in {"0", "false", "no", "off"}:
+        return
+    status = get_runtime_config_status()
+    logger.info(
+        "Career Match startup config: database=%s clerk=%s adzuna=%s cors=%s",
+        "yes" if status["database_configured"] else "no",
+        "yes" if status["clerk_issuer_configured"] else "no",
+        "yes" if status["adzuna_configured"] else "no",
+        ", ".join(status["cors_origins"]),
+    )
+
+
+load_local_env_file()
