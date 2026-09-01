@@ -1,11 +1,14 @@
 """Job discovery sources and provider abstractions."""
 
+from career_match.jobs.errors import JobProviderError, JobProviderNotConfiguredError
 from career_match.jobs.protocol import JobOpportunity, JobSource
-from career_match.jobs.sources import InMemoryJobSource, PostgresJobOpportunitySource
+from career_match.jobs.query_builder import JobSearchQuery, build_job_search_query
 
 __all__ = [
-    "InMemoryJobSource",
     "JobOpportunity",
+    "JobProviderError",
+    "JobProviderNotConfiguredError",
+    "JobSearchQuery",
     "JobSource",
-    "PostgresJobOpportunitySource",
+    "build_job_search_query",
 ]

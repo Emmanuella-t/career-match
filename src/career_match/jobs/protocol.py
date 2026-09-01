@@ -34,6 +34,7 @@ class JobSource(Protocol):
     def list_opportunities(
         self,
         *,
+        search_query: str | None = None,
         location: str | None = None,
         employment_type: str | None = None,
         limit: int | None = None,

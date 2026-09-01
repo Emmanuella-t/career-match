@@ -40,10 +40,12 @@ class InMemoryJobSource:
     def list_opportunities(
         self,
         *,
+        search_query: str | None = None,
         location: str | None = None,
         employment_type: str | None = None,
         limit: int | None = None,
     ) -> list[JobOpportunity]:
+        del search_query  # fixture catalog ignores generated queries
         rows = self._opportunities
         if location:
             needle = location.strip().lower()
@@ -77,10 +79,12 @@ class PostgresJobOpportunitySource:
     def list_opportunities(
         self,
         *,
+        search_query: str | None = None,
         location: str | None = None,
         employment_type: str | None = None,
         limit: int | None = None,
     ) -> list[JobOpportunity]:
+        del search_query  # catalog-backed jobs ignore generated queries
         records = self._store.list_job_opportunities(
             location=location,
             employment_type=employment_type,

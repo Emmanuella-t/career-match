@@ -130,6 +130,9 @@ export type JobDiscoverResponse = {
   disclaimer: string;
   resume_id: string | null;
   source: string;
+  search_query: string | null;
+  candidate_count: number;
+  provider_message: string | null;
 };
 
 function requireToken(token: string | null | undefined): string {

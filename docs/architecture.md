@@ -224,11 +224,15 @@ text-based PDF/DOCX only — no OCR for scanned PDFs). Default matcher is
 semantic. Scores are not hiring probabilities.
 
 **Job discovery:** authenticated `POST /api/v1/jobs/discover` loads the user's
-resume, reads available jobs from a `JobSource` provider (Postgres catalog by
-default), and ranks them with the same matcher pipeline as `/match`. Discoverable
-jobs live in `job_opportunities`; user bookmarks remain in `saved_jobs`. No live
-external job feed ships in this milestone — production starts with an empty
-catalog until a provider sync is added. Tests inject synthetic in-memory sources.
+resume, builds a deterministic search query from resume evidence (skills + role
+terms — never the full resume text), retrieves candidate jobs from the configured
+`JobSource`, and ranks every candidate with the same matcher pipeline as `/match`.
+When `ADZUNA_APP_ID` and `ADZUNA_APP_KEY` are set, `AdzunaJobSource` fetches live
+listings; otherwise discovery falls back to the Postgres `job_opportunities`
+catalog. Provider ordering is discarded — Career Match `overall_score` determines
+rank. Saved bookmarks remain in `saved_jobs`. External listings are ephemeral
+during search; only user-saved jobs persist. Tests inject in-memory sources or mock
+Adzuna HTTP responses.
 
 **Grounded tailoring:** authenticated tailoring follows analyze → review → preview → export:
 

@@ -12,6 +12,8 @@ Environment variables (optional):
   persistence routes.
 - ``DATABASE_URL`` — PostgreSQL connection string (Neon in production;
   backend only — never expose to the browser).
+- ``ADZUNA_APP_ID`` / ``ADZUNA_APP_KEY`` / ``ADZUNA_COUNTRY`` — Adzuna job
+  search provider (backend only).
 - Resume uploads are parsed in memory with a ``2 MiB`` file size cap
   (``MAX_RESUME_FILE_BYTES``). Supported formats: PDF and DOCX.
 

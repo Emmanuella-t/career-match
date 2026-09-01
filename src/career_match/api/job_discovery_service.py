@@ -12,13 +12,29 @@ from career_match.api.schemas import (
 )
 from career_match.api.services import MatcherService
 from career_match.api.settings import SCORE_DISCLAIMER
+from career_match.jobs.errors import JobProviderError
+from career_match.jobs.factory import adzuna_is_configured
 from career_match.jobs.protocol import JobOpportunity, JobSource
+from career_match.jobs.query_builder import build_job_search_query
 from career_match.persistence.errors import RecordNotFoundError
 from career_match.persistence.store import PersistenceStore
 
 DEFAULT_DISCOVERY_LIMIT = 20
 MAX_DISCOVERY_LIMIT = 50
 MAX_CATALOG_SCAN = 500
+MAX_ADZUNA_FETCH = 50
+
+_PROVIDER_UNAVAILABLE = (
+    "We're having trouble loading jobs right now. Please try again in a moment."
+)
+_PROVIDER_NOT_CONFIGURED = (
+    "Live job search isn't available right now. "
+    "You can still analyze and tailor jobs you add manually."
+)
+_NO_RESULTS = (
+    "We couldn't find matching jobs for this search. "
+    "Try a broader location or a different resume."
+)
 
 
 class JobDiscoveryService:
@@ -38,12 +54,29 @@ class JobDiscoveryService:
     def discover(self, clerk_user_id: str, payload: JobDiscoverRequest) -> JobDiscoverResponse:
         resume_text, resume_id = self._resolve_resume(clerk_user_id, payload)
         limit = min(payload.limit or DEFAULT_DISCOVERY_LIMIT, MAX_DISCOVERY_LIMIT)
+        search = build_job_search_query(resume_text)
 
-        opportunities = self._job_source.list_opportunities(
-            location=payload.location,
-            employment_type=payload.employment_type,
-            limit=MAX_CATALOG_SCAN,
+        provider_message: str | None = None
+        fetch_limit = (
+            MAX_ADZUNA_FETCH
+            if self._job_source.name == "adzuna"
+            else MAX_CATALOG_SCAN
         )
+
+        try:
+            opportunities = self._job_source.list_opportunities(
+                search_query=search.text,
+                location=payload.location,
+                employment_type=payload.employment_type,
+                limit=fetch_limit,
+            )
+        except JobProviderError:
+            opportunities = []
+            provider_message = _PROVIDER_UNAVAILABLE
+
+        candidate_count = len(opportunities)
+        if candidate_count == 0 and provider_message is None:
+            provider_message = self._empty_results_message(payload)
 
         ranked: list[RankedJobResult] = []
         matcher_name = ""
@@ -83,6 +116,9 @@ class JobDiscoveryService:
             disclaimer=SCORE_DISCLAIMER,
             resume_id=resume_id,
             source=self._job_source.name,
+            search_query=search.text,
+            candidate_count=candidate_count,
+            provider_message=provider_message,
         )
 
     def _resolve_resume(
@@ -96,6 +132,21 @@ class JobDiscoveryService:
         if payload.resume_text is not None:
             return payload.resume_text, None
         raise RecordNotFoundError("resume not found")
+
+    def _empty_results_message(self, payload: JobDiscoverRequest) -> str:
+        """Distinguish missing external provider from a configured search with no hits."""
+        if (
+            self._job_source.name == "postgres-catalog"
+            and not adzuna_is_configured()
+            and not self._catalog_has_any_jobs()
+        ):
+            return _PROVIDER_NOT_CONFIGURED
+        return _NO_RESULTS
+
+    def _catalog_has_any_jobs(self) -> bool:
+        """Return whether the Postgres catalog contains any discoverable jobs."""
+        jobs = self._job_source.list_opportunities(limit=1)
+        return bool(jobs)
 
 
 def _to_job_response(opportunity: JobOpportunity) -> JobOpportunityResponse:
